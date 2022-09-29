@@ -2,7 +2,7 @@
 terraform {
   backend "s3" {
     bucket = "contiamo-terraform-state"
-    key    = "datahub/test.tfstate"
+    # key    = "datahub/datahub.tfstate"
     region = "eu-central-1"
   }
 }
