@@ -20,7 +20,7 @@ This module can be used to create Github repos with Contiamo's standard repo set
     terraform plan -var-file=vars.tfvars -out=myPlan.tfplan
     terraform apply "myPlan.tfplan"
     ```
-### Reference In another TF Project:
+### Reference In Another TF Project:
 ```terraform
 module "github" {
     source = "git@github.com:contiamo/terraform.git//github"
