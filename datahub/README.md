@@ -5,6 +5,8 @@ This module installs [Datahub](https://datahubproject.io) using Helm.
 The release will be installed into the cluster to which your kubectl config is currently pointing.
 
 ## Usage
+
+### Use Independently:
 - Set values for the required variables and save it in `vars.tfvars`:
     ```bash
     datahub_namespace = "[your namespace]"
@@ -26,3 +28,12 @@ The release will be installed into the cluster to which your kubectl config is c
     ```bash
     terraform apply "datahubplan.tfplan"
     ```
+### Reference In Another Project:
+
+```terraform
+module "datahub" {
+    datahub_namespace = "[your namespace]"
+    ui_ingress_host = "[UI domain]"
+    api_ingress_host = "[API domain]"
+}
+```

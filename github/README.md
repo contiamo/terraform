@@ -1,9 +1,10 @@
-# Usage
+# Github Module
 
-This module can be used independently to create Github repos with Contiamo's standard repo settings already configured.
+This module can be used to create Github repos with Contiamo's standard repo settings already configured.
 
 ## Instructions:
 
+### Use Independently:
 - Create a new `vars.tfvars` file containing the repo name, description and collaborators with their permissions. Permission value must be one of "`pull`", "`push`", "`maintain`", "`triage`" or "`admin`":
 
     ```tfvars
@@ -19,8 +20,12 @@ This module can be used independently to create Github repos with Contiamo's sta
     terraform plan -var-file=vars.tfvars -out=myPlan.tfplan
     terraform apply "myPlan.tfplan"
     ```
-- Delete the newly created files so that they don't interfere with Project Ops:
-    ```
-    rm myPlan.tfplan terraform.tfstate terraform.tfstate.backup vars.tfvars
-    rm -rf .terraform .terraform.lock.hcl
-    ```
+### Reference In another TF Project:
+```terraform
+module "github" {
+    source = "git@github.com:contiamo/terraform.git//github"
+    repo_name = var.project_name
+    repo_description = var.project_description
+    repo_collaborators = local.users_to_add_as_github_collaborators
+}
+```
