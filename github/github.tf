@@ -64,18 +64,18 @@ resource "github_repository_collaborator" "repo_user_ci" {
 }
 
 # Add workflow file called .github/workflows/release-please.yaml:
-resource "github_repository_file" "release-please" {
+resource "github_repository_file" "release_please" {
   repository = github_repository.project_repo.name
-  file       = ".github/workflows/release-please.yaml"
-  content    = file("${path.module}/release-please.yaml")
+  file       = ".github/workflows/release_please.yaml"
+  content    = file("${path.module}/release_please.yaml")
   branch     = "main"
 }
 
 # Add .github/workflows/semantic-commits.yaml:
-resource "github_repository_file" "semantic-commits" {
+resource "github_repository_file" "semantic_commits" {
   repository = github_repository.project_repo.name
-  file       = ".github/workflows/semantic-commits.yaml"
-  content    = file("${path.module}/semantic-commits.yaml")
+  file       = ".github/workflows/semantic_commits.yaml"
+  content    = file("${path.module}/semantic_commits.yaml")
   branch     = "main"
 }
 output "repo_url" {
