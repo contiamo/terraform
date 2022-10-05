@@ -63,6 +63,21 @@ resource "github_repository_collaborator" "repo_user_ci" {
   permission = "admin"
 }
 
+# Add workflow file called .github/workflows/release-please.yaml:
+resource "github_repository_file" "release-please" {
+  repository = github_repository.project_repo.name
+  file       = ".github/workflows/release-please.yaml"
+  content    = file("${path.module}/release-please.yaml")
+  branch     = "main"
+}
+
+# Add .github/workflows/semantic-commits.yaml:
+resource "github_repository_file" "semantic-commits" {
+  repository = github_repository.project_repo.name
+  file       = ".github/workflows/semantic-commits.yaml"
+  content    = file("${path.module}/semantic-commits.yaml")
+  branch     = "main"
+}
 output "repo_url" {
   value = github_repository.project_repo.html_url
 }
