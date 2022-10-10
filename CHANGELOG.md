@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://www.github.com/contiamo/terraform/compare/v0.1.0...v0.2.0) (2022-10-05)
+
+
+### Features
+
+* Add release please and semantic commits ([1e079d7](https://www.github.com/contiamo/terraform/commit/1e079d7fb8c5a78b07f7e024008045de307d125b))
+
 ## 0.1.0 (2022-10-04)
 
 
