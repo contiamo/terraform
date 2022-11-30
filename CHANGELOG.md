@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.2.1](https://github.com/contiamo/terraform/compare/v0.2.0...v0.2.1) (2022-11-01)
+
+
+### Miscellaneous
+
+* replace external actions with offical github script action ([f099785](https://github.com/contiamo/terraform/commit/f099785f1811e30fe3044116b34517d66db30ad1))
+
 ## [0.2.0](https://www.github.com/contiamo/terraform/compare/v0.1.0...v0.2.0) (2022-10-05)
 
 
