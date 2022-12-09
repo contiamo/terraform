@@ -13,7 +13,7 @@ datahub-frontend:
     hosts:
       - host: ${UI_INGRESS_HOST}
         paths:
-          - "/*"
+          - "/"
   extraVolumes:
     - name: datahub-default-users
       secret:
@@ -36,4 +36,4 @@ datahub-gms:
     hosts:
       - host: ${API_INGRESS_HOST}
         paths:
-          - "/*"
+          - "/"
