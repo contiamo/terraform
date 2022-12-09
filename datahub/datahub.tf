@@ -38,7 +38,7 @@ resource "kubernetes_namespace_v1" "datahub_namespoace" {
       "com.contiamo/datahub-tracking" = "true"
     }
 
-    name = "datahub-tf"
+    name = var.datahub_namespace
   }
 }
 resource "random_string" "password" {
