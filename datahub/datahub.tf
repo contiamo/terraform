@@ -7,15 +7,6 @@ terraform {
   }
 }
 
-# Generate values from template:
-data "template_file" "datahub_values" {
-  template = file("${path.module}/helm-values.tpl")
-  vars = {
-    UI_INGRESS_HOST = var.ui_ingress_host
-    API_INGRESS_HOST = var.api_ingress_host
-    INGRESS_CLASS  = var.ingress_class
-  }
-}
 # Create the namespace:
 resource "kubernetes_namespace_v1" "datahub_namespoace" {
   metadata {
