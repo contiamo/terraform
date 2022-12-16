@@ -7,16 +7,6 @@ terraform {
   }
 }
 
-# provider "kubernetes" {
-#   config_path = "~/.kube/config"
-# }
-
-# provider "helm" {
-#   kubernetes {
-#     config_path = "~/.kube/config"
-#   }
-# }
-
 # Generate values from template:
 data "template_file" "datahub_values" {
   template = file("${path.module}/helm-values.tpl")
@@ -108,10 +98,7 @@ resource "helm_release" "datahub" {
   namespace   = var.datahub_namespace
   max_history = 3
   create_namespace = true
-#   values = [
-#     "${file("datahub-helm-values.yaml")}"
-#   ]
     values = [
-        data.template_file.datahub_values.rendered
+        templatefile("${path.module}/helm-values.tpl", { UI_INGRESS_HOST = var.ui_ingress_host, API_INGRESS_HOST = var.api_ingress_host, INGRESS_CLASS  = var.ingress_class })
     ]
 }
