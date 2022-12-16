@@ -11,11 +11,11 @@ terraform {
 #   config_path = "~/.kube/config"
 # }
 
-provider "helm" {
-  kubernetes {
-    config_path = "~/.kube/config"
-  }
-}
+# provider "helm" {
+#   kubernetes {
+#     config_path = "~/.kube/config"
+#   }
+# }
 
 # Generate values from template:
 data "template_file" "datahub_values" {
