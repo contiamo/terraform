@@ -1,12 +1,3 @@
-# Set state backend:
-terraform {
-  backend "s3" {
-    bucket = "contiamo-terraform-state"
-    # key    = "datahub/datahub.tfstate"
-    region = "eu-central-1"
-  }
-}
-
 # Create the namespace:
 resource "kubernetes_namespace_v1" "datahub_namespoace" {
   metadata {
