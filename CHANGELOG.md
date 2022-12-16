@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.3.0](https://github.com/contiamo/terraform/compare/v0.2.1...v0.3.0) (2022-12-16)
+
+
+### Features
+
+* Remove archived template_file provider in favour of templatefile function ([7578171](https://github.com/contiamo/terraform/commit/7578171210cee2bd5cb3387ad0d3bc5e44243930))
+
+
+### Bug Fixes
+
+* Disable kubernetes provider config. Should be set by users ([2466edb](https://github.com/contiamo/terraform/commit/2466edb0eeccefac78a42a18ed7f117244aac428))
+* Now actually removing the template_file block ([2b16d01](https://github.com/contiamo/terraform/commit/2b16d01b53beb42aeed02e21e4353274325b96cc))
+* removing provider config from Datahub module ([fac340a](https://github.com/contiamo/terraform/commit/fac340a4075ea4fa547de9cf8b01a9c5720abd8c))
+
+
+### Miscellaneous
+
+* Better formatting for templatefile() input ([8815a05](https://github.com/contiamo/terraform/commit/8815a054969144cea05a2ae747d0a246bf72d600))
+* Remove backend config: module users should set that ([2508202](https://github.com/contiamo/terraform/commit/2508202b0dfdb363e237080d4afd881bcef918fb))
+
 ### [0.2.1](https://github.com/contiamo/terraform/compare/v0.2.0...v0.2.1) (2022-11-01)
 
 
