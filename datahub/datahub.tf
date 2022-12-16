@@ -81,6 +81,12 @@ resource "helm_release" "datahub" {
   max_history = 3
   create_namespace = true
     values = [
-        templatefile("${path.module}/helm-values.tpl", { UI_INGRESS_HOST = var.ui_ingress_host, API_INGRESS_HOST = var.api_ingress_host, INGRESS_CLASS  = var.ingress_class })
+        templatefile("${path.module}/helm-values.tpl",
+          {
+            UI_INGRESS_HOST = var.ui_ingress_host,
+            API_INGRESS_HOST = var.api_ingress_host,
+            INGRESS_CLASS  = var.ingress_class
+          }
+        )
     ]
 }
