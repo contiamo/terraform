@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.4.0](https://github.com/contiamo/terraform/compare/v0.3.0...v0.4.0) (2023-01-04)
+
+
+### Features
+
+* Add Tailscale module ([15a250b](https://github.com/contiamo/terraform/commit/15a250bc897407678f5858e8a599a8509b1439e7))
+
+
+### Bug Fixes
+
+* Add missing variable for tailscale module ([9ef864b](https://github.com/contiamo/terraform/commit/9ef864b2d7b9fb0d2bc826a67867fe23e3260482))
+* Insure tailscale namespace exists ([c7187d0](https://github.com/contiamo/terraform/commit/c7187d02d8ff38ecd9465391a330866406033afd))
+
 ## [0.3.0](https://github.com/contiamo/terraform/compare/v0.2.1...v0.3.0) (2022-12-16)
 
 
