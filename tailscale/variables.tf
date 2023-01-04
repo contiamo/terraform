@@ -22,3 +22,11 @@ variable "image_tag" {
   description = "Tailscale image tag"
   default     = "v1.34.1"
 }
+variable "k8s_cluster_service_cidr" {
+  type        = string
+  description = "Kubernetes cluster service CIDR"
+}
+variable "k8s_cluster_pod_cidr" {
+  type        = string
+  description = "Kubernetes cluster pod CIDR"
+}

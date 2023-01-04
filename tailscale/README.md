@@ -12,5 +12,8 @@ module "tailscale" {
   tailscale_auth_key = var.tailscale_auth_key
   create_tailscale_auth_key_secret = var.create_tailscale_auth_key_secret
   image_tag = "v1.34.1"
+  k8s_cluster_pod_cidr = "<YOUR cluster pod CIDR>"
+  k8s_cluster_service_cidr = "<YOUR cluster service CIDR>"
 }
 ```
+
