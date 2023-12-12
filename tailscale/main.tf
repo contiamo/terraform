@@ -83,7 +83,7 @@ resource "kubernetes_secret_v1" "tailscale_auth" {
 
 resource "kubernetes_stateful_set_v1" "tailscale-subnet-router" {
   metadata {
-    name = "tailscale-subnet-router"
+    name = var.router_machine_name
     namespace = var.k8s_namespace
     labels = {
       "app" = "tailscale"
