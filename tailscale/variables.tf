@@ -30,3 +30,8 @@ variable "k8s_cluster_pod_cidr" {
   type        = string
   description = "Kubernetes cluster pod CIDR"
 }
+variable "router_machine_name" {
+  type = string
+  description = "Name of the router machine. This name will be used as the pod name and will appear in your Tailscale machine list"
+  default = "tailscale-subnet-router"
+}
