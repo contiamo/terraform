@@ -23,4 +23,31 @@ module "external_dns" {
   hosted_zone_id     = [ Route53 hosted zone ID ]
   aws_route53_domain = [ Route53 domain ]
 }
+```
 
+
+## Using External DNS
+Extensive docs can be found in [External DNS project Github](https://github.com/kubernetes-sigs/external-dns/tree/master#readme).
+
+**TL;DR**:
+
+Once installed you can annotate your services in order for DNS records to be created for them:
+
+* For LoadBalancer Services:
+  ```bash
+  kubectl annotate service nginx "external-dns.alpha.kubernetes.io/hostname=nginx.example.org."
+  ```
+
+
+* For ClusterIP Services:
+
+  Use the internal-hostname annotation to create DNS records with ClusterIP as the target.
+
+  ```bash
+  kubectl annotate service nginx "external-dns.alpha.kubernetes.io/internal-hostname=nginx.internal.example.org."
+  ```
+
+Optionally, you can customize the TTL value of the resulting DNS record by using the `external-dns.alpha.kubernetes.io/ttl` annotation:
+```bash
+kubectl annotate service nginx "external-dns.alpha.kubernetes.io/ttl=10"
+```
