@@ -4,6 +4,18 @@ This module creates a Slack channel and adds provided users (references by their
 
 ## Instructions:
 
+### Reference In another TF Project:
+```terraform
+module "slack" {
+    # To reference as a private repo use "git@github.com:/contiamo...:
+    # source = "git@github.com:contiamo/terraform.git//slack"
+    source = "github.com/contiamo/terraform//slack"
+    channel_name = "[new channel name]"
+    channel_topic = "[new channel description]"
+    channel_members = [list of user emails]
+}
+```
+
 ### Use Independently:
 - Create a new `vars.tfvars` file containing the following values:
 
@@ -21,12 +33,3 @@ This module creates a Slack channel and adds provided users (references by their
     terraform apply "myPlan.tfplan"
     ```
 
-### Reference In another TF Project:
-```terraform
-module "slack" {
-    source = "git@github.com:contiamo/terraform.git//slack"
-    channel_name = "[new channel name]"
-    channel_topic = "[new channel description]"
-    channel_members = [list of user emails]
-}
-```

@@ -12,4 +12,3 @@
 
     mv terraform-provider-portal-whitesky-cloud_v2.0.3 ~/.terraform.d/plugins/registry.terraform.io/portal-whitesky-cloud/portal-whitesky-cloud/2.0.3/
     ```
-

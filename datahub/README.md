@@ -6,6 +6,19 @@ The release will be installed into the cluster to which your kubectl config is c
 
 ## Usage
 
+### Reference In Another Project:
+
+```terraform
+module "datahub" {
+  # To reference as a private repo use "git@github.com:/contiamo...:
+  # source = "git@github.com:contiamo/terraform.git//datahub"
+  source = "github.com/contiamo/terraform//datahub"
+  datahub_namespace = "[your namespace]"
+  ui_ingress_host = "[UI domain]"
+  api_ingress_host = "[API domain]"
+}
+```
+
 ### Use Independently:
 - Set values for the required variables and save it in `vars.tfvars`:
     ```bash
@@ -28,12 +41,3 @@ The release will be installed into the cluster to which your kubectl config is c
     ```bash
     terraform apply "datahubplan.tfplan"
     ```
-### Reference In Another Project:
-
-```terraform
-module "datahub" {
-    datahub_namespace = "[your namespace]"
-    ui_ingress_host = "[UI domain]"
-    api_ingress_host = "[API domain]"
-}
-```
