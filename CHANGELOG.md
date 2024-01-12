@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0](https://github.com/contiamo/terraform/compare/v0.4.0...v0.5.0) (2024-01-12)
+
+
+### Features
+
+* Add an option to set tailscale subnet router name ([657ff89](https://github.com/contiamo/terraform/commit/657ff89b4799bba6cbdcad7863227ad78394e655))
+* Add Elasticsearch module ([4586064](https://github.com/contiamo/terraform/commit/4586064f1f088fa06af0c581d267c46db70e2ec8))
+
+
+### Bug Fixes
+
+* Reference router name var. in Tailscale module ([1add8fc](https://github.com/contiamo/terraform/commit/1add8fc64db95a0a83bbeb83b734db0f93edc791))
+
+
+### Miscellaneous
+
+* Update External DNS module docs ([dde6819](https://github.com/contiamo/terraform/commit/dde68190270dfd9d59c3daee76cc19a3722145aa))
+* Update README with correct source reference ([c9c0f17](https://github.com/contiamo/terraform/commit/c9c0f17b9067952f50bb97a171199fa8e9a7f1a6))
+
 ## [0.4.0](https://github.com/contiamo/terraform/compare/v0.3.0...v0.4.0) (2023-01-04)
 
 
