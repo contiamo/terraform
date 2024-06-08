@@ -107,7 +107,7 @@ resource "kubernetes_cron_job_v1" "ecr_registry_helper" {
                 "-c",
                 templatefile("${path.module}/assets/ecr-helper-script.sh.tpl", {
                   AWS_REGION         = var.aws_region,
-                  AWS_ACCOUNT        = data.aws_caller_identity.current.account_id,
+                  AWS_ACCOUNT        = var.aws_account_id,
                   DOCKER_SECRET_NAME = var.ecr_registry_secret_name
                 })
               ]
