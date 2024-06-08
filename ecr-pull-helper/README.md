@@ -12,6 +12,7 @@ module "ecr_helper" {
   aws_secret_access_key       = [AWS secrets access key for a user with read-only ECR access]
   aws_access_key_id           = [AWS secret access key ID for a user with read-only ECR access]
   aws_region                  = [AWS region where your ECR lives]
+  aws_account_id              = [AWS account ID of the eccount with your ECR]
   ecr_helper_namespace        = [The name of the namespace that will be created for the cronjob. Default: "ecr-helper"]
   ecr_helper_svc_account_name = [The name of the service account that will be created for the cronjob. Default: "ecr-helper"]
   ecr_registry_secret_name    = [The name of the Docker credential secrets that will be managed for you in all namespaces. Default: "ecr-registry-secret"]
