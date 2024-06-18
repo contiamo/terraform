@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.5.0](https://github.com/contiamo/terraform/compare/v0.4.0...v0.5.0) (2024-06-18)
+
+
+### Features
+
+* Add an option to set tailscale subnet router name ([657ff89](https://github.com/contiamo/terraform/commit/657ff89b4799bba6cbdcad7863227ad78394e655))
+* Add cloned mwaa module ([7ad0354](https://github.com/contiamo/terraform/commit/7ad03544d3b8621ee1e4c854518f735992dfcb61))
+* Add ECR pull helper ([adf3f71](https://github.com/contiamo/terraform/commit/adf3f717c9b74328d6f5637ddd35843222f0a71e))
+* Add EKS Monitoring stack module ([71e4477](https://github.com/contiamo/terraform/commit/71e4477171ef22744b3717a8714cf2346830c74d))
+* Add Elasticsearch module ([4586064](https://github.com/contiamo/terraform/commit/4586064f1f088fa06af0c581d267c46db70e2ec8))
+
+
+### Bug Fixes
+
+* ECR helper: add missing script ([2dd3e73](https://github.com/contiamo/terraform/commit/2dd3e73999f8347597926ea901fa96a4a8158186))
+* Missing aws account ref in ecr helper ([dcd327e](https://github.com/contiamo/terraform/commit/dcd327ef12e27a6396018dd26b8e4f07533d809d))
+* Reference router name var. in Tailscale module ([1add8fc](https://github.com/contiamo/terraform/commit/1add8fc64db95a0a83bbeb83b734db0f93edc791))
+
+
+### Miscellaneous
+
+* Upadte Monitoring module docs ([62825ab](https://github.com/contiamo/terraform/commit/62825abf4670b80d1441bc7f51f6c04303d4ea8e))
+* Update External DNS module docs ([dde6819](https://github.com/contiamo/terraform/commit/dde68190270dfd9d59c3daee76cc19a3722145aa))
+* Update README with correct source reference ([c9c0f17](https://github.com/contiamo/terraform/commit/c9c0f17b9067952f50bb97a171199fa8e9a7f1a6))
+
 ## [0.4.0](https://github.com/contiamo/terraform/compare/v0.3.0...v0.4.0) (2023-01-04)
 
 
