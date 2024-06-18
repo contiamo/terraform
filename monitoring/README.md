@@ -12,7 +12,7 @@ module "monitoring" {
   kube_prometheus_version           = "60.2.0"
   promtail_version                  = "6.16.0"
   loki_version                      = "6.6.3"
-  loki_storage_bucket_name          = "contiamo-eks-loki-storage" # this bucket will be created for you.
+  loki_storage_bucket_name          = "my-loki-storage" # this bucket will be created for you.
   oidc_provider_arn                 = module.eks.oidc_provider_arn # If you used the EKS module to create your cluster simply use this value.
   grafana_pvc_size                  = "50Gi"
   grafana_ingress_class_name        = "nginx-internal" # the name of your NGINX ingress class
