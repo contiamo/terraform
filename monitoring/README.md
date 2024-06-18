@@ -1,7 +1,7 @@
 # Monitoring Stack for EKS
 
 This module sets up Grafana, Prometheus, Loki and Promtail stack.
-This is all you need to monitor your cluster.
+This is all you need to monitor your EKS cluster.
 
 ## Usage:
 
