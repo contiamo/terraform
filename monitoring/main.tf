@@ -91,7 +91,7 @@ resource "kubernetes_config_map_v1" "loki_datasource" {
       - name: Loki
         type: loki
         uid: loki
-        url: http://loki-gateway.monitoring.svc.cluster.local
+        url: http://loki-gateway.${kubernetes_namespace_v1.monitoring.metadata[0].name}.svc.cluster.local
         access: proxy
         EOT
   }
