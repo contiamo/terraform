@@ -143,3 +143,14 @@ resource "helm_release" "promtail" {
   ]
 }
 
+resource "helm_release" "blackbox_exporter" {
+  depends_on = [
+    kubernetes_namespace_v1.monitoring,
+    helm_release.monitoring,
+  ]
+  name       = "blackbox-exporter"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "prometheus-blackbox-exporter"
+  version    = var.blackbox_exporter_version
+  namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
+}

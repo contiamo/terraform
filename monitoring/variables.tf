@@ -63,3 +63,7 @@ variable "promtail_version" {
   type        = string
   description = "Promtail version."
 }
+variable "blackbox_exporter_version" {
+  type        = string
+  description = "Blackbox exporter version."
+}
