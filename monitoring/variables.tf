@@ -49,7 +49,19 @@ variable "grafana_ingress_class_name" {
   description = "The class name for the Grafana Ingress"
   type        = string
 }
-
+variable "alert_manager_ingress_class_name" {
+  description = "The class name for the Alert Manager Ingress"
+  type        = string
+}
+variable "alert_manager_host" {
+  description = "The host for Alert Manager"
+  type        = string
+}
+variable "alert_manager_slack_webhook_url" {
+  description = "The Slack Webhook URL for Alert Manager"
+  type        = string
+  sensitive   = true
+}
 variable "cert_manager_cluster_issuer_name" {
   description = "The name of the Cert Manager Cluster Issuer"
   type        = string
