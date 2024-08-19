@@ -583,7 +583,7 @@ additionalPrometheusRulesMap:
         annotations:
           message: Ingress {{ $labels.host }} 95th req. latency percentile {{ $value }}.
           runbook_url: https://github.com/contiamo/ops-docs/tree/master/runbook/NginxIngressMetrics.md#nginxerrors
-        expr: histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{ingress!=""}[5m])) by (le, ingress, host, exported_namespace)) > 1
-        for: 5m
+        expr: histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{ingress!=""}[5m])) by (le, ingress, host, exported_namespace)) > 2
+        for: 10m
         labels:
           severity: warning
