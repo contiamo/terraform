@@ -59,22 +59,20 @@ alertmanager:
       resolve_timeout: 5m
       slack_api_url: ${ALERT_MANAGER_SLACK_WEBHOOK_URL}
     inhibit_rules:
-      - equal:
-        - namespace
-        - alertname
-        source_matchers:
-        - severity = critical
+      - source_matchers:
+          - severity = critical
         target_matchers:
-        - severity =~ warning|info
-      - equal:
-        - namespace
-        - alertname
-        source_matchers:
-        - severity = warning
-      - target_matchers:
-        - severity = info
-      - target_matchers:
-        - alertname = AlertmanagerFailedToSendAlerts
+          - severity =~ warning|info
+        equal:
+          - namespace
+          - alertname
+      - source_matchers:
+          - severity = warning
+        target_matchers:
+          - severity = info
+        equal:
+          - namespace
+          - alertname
 
     receivers:
     - name: 'cole'
@@ -112,6 +110,9 @@ alertmanager:
         receiver: "null"
       - match:
           alertname: InfoInhibitor
+        receiver: "null"
+      - match:
+          severity: info
         receiver: "null"
       - match:
           alertname: HeartBeat
