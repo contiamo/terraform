@@ -17,9 +17,13 @@ module "monitoring" {
   grafana_pvc_size                  = "50Gi"
   grafana_ingress_class_name        = "nginx-internal" # the name of your NGINX ingress class
   cert_manager_cluster_issuer_name  = local.cert_manager_cluster_issuer_name
-  grafana_host                      = "grafana.internal.ctmo.io"
+  grafana_host                      = # Grafana host
   grafana_admin_user                = "contiamo"
   grafana_admin_password            = random_password.grafana.result # Generate your password in TF or use your own value here.
+  alert_manager_ingress_class_name  = "nginx-internal" # the name of your NGINX ingress class
+  alert_manager_host                = # Alertmanager host
+  alert_manager_slack_webhook_url   = # Slack webhook for Alertmanager alerts
+
   aws_tags = {
     "ManagedBy"          = "Terraform",
   }
