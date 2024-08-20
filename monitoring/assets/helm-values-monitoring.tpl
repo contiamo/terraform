@@ -38,6 +38,8 @@ defaultRules:
     KubeMemoryOvercommit: true
     KubeCPUOvercommit: true
     AlertmanagerFailedToSendAlerts: true
+    CPUThrottlingHigh: true
+    KubeletTooManyPods: true
 
 alertmanager:
   ingress:
@@ -69,19 +71,12 @@ alertmanager:
         - alertname
         source_matchers:
         - severity = warning
-        target_matchers:
+      - target_matchers:
         - severity = info
       - equal:
         - namespace
         source_matchers:
         - alertname = InfoInhibitor
-        target_matchers:
-        - severity = info
-      - target_matchers:
-        - alertname = InfoInhibitor
-      # https://runbooks.prometheus-operator.dev/runbooks/kubernetes/cputhrottlinghigh/
-      - target_matchers:
-        - alertname = CPUThrottlingHigh
       - target_matchers:
         - alertname = AlertmanagerFailedToSendAlerts
 
@@ -581,9 +576,9 @@ additionalPrometheusRulesMap:
           severity: warning
       - alert: NginxLatency
         annotations:
-          message: Ingress {{ $labels.host }} 95th req. latency percentile {{ $value }}.
+          message: Ingress {{ $labels.host }} 99th req. latency percentile {{ $value }}.
           runbook_url: https://github.com/contiamo/ops-docs/tree/master/runbook/NginxIngressMetrics.md#nginxerrors
-        expr: histogram_quantile(0.95, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{ingress!=""}[5m])) by (le, ingress, host, exported_namespace)) > 2
+        expr: histogram_quantile(0.99, sum(rate(nginx_ingress_controller_request_duration_seconds_bucket{ingress!=""}[5m])) by (le, ingress, host, exported_namespace)) > 10
         for: 10m
         labels:
           severity: warning
