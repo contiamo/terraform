@@ -575,7 +575,7 @@ additionalPrometheusRulesMap:
         annotations:
           message: 'Ingress 4-- or 5-- responses over last minute: {{ $value }}.'
           runbook_url: https://github.com/contiamo/ops-docs/tree/master/runbook/NginxIngressMetrics.md#nginxlatency
-        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_count{status=~"[4-5].*",}[1m])) by(path, status, ingress, namespace) > 0.00
+        expr: sum(rate(nginx_ingress_controller_request_duration_seconds_count{status=~"[4-5].*",}[1m])) by(path, status, ingress, namespace) > 10.00
         for: 1m
         labels:
           severity: warning
