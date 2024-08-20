@@ -73,10 +73,6 @@ alertmanager:
         - severity = warning
       - target_matchers:
         - severity = info
-      - equal:
-        - namespace
-        source_matchers:
-        - alertname = InfoInhibitor
       - target_matchers:
         - alertname = AlertmanagerFailedToSendAlerts
 
@@ -113,6 +109,9 @@ alertmanager:
       routes:
       - match:
           alertname: Watchdog
+        receiver: "null"
+      - match:
+          alertname: InfoInhibitor
         receiver: "null"
       - match:
           alertname: HeartBeat
