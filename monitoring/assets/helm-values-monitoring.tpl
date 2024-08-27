@@ -320,7 +320,7 @@ additionalPrometheusRulesMap:
           grafana_log_path: /explore?orgId=1&left=%5B"now-1h","now","Loki",%7B"expr":"%7Bpod%3D%5C"{{
             $labels.pod }}%5C",namespace%3D%5C"{{ $labels.namespace }}%5C"%7D"%7D,%7B"mode":"Logs"%7D,%7B"ui":%5Btrue,true,true,"none"%5D%7D%5D
           #grafana_url: https://grafana.dev.contiamo.io/
-          grafana_url: GRAFANA_URL_PLACEHOLDER
+          grafana_url: https://${GRAFANA_HOST}
           message: Pod {{ $labels.namespace }}/{{ $labels.pod }} ({{ $labels.container
             }}) is restarting {{ printf "%.2f" $value }} times / 5 minutes.
           runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepodcrashloopingA
