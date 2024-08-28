@@ -317,7 +317,7 @@ additionalPrometheusRulesMap:
           severity: none
       - alert: KubePodCrashLooping
         annotations:
-          grafana_log_path: /explore?orgId=1&left=%5B"now-1h","now","Loki",%7B"expr":"%7Bpod%3D%5C"{{
+          grafana_log_path: explore?orgId=1&left=%5B"now-1h","now","Loki",%7B"expr":"%7Bpod%3D%5C"{{
             $labels.pod }}%5C",namespace%3D%5C"{{ $labels.namespace }}%5C"%7D"%7D,%7B"mode":"Logs"%7D,%7B"ui":%5Btrue,true,true,"none"%5D%7D%5D
           #grafana_url: https://grafana.dev.contiamo.io/
           grafana_url: https://${GRAFANA_HOST}
