@@ -91,7 +91,7 @@ alertmanager:
           *Description:* {{ .Annotations.message }}
           {{ if .Annotations.runbook_url }} *Runbook Link*: <{{ .Annotations.runbook_url }}|:notebook_with_decorative_cover:>{{ end }}
           {{ if .Annotations.grafana_url }} *Logs in Grafana*: <{{ .Annotations.grafana_url }}/{{ .Annotations.grafana_log_path }}|:chart_with_upwards_trend:>{{ end }}
-          *Details:*
+          *Alert Details:*
             {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
             {{ end }}
           {{ end }}
