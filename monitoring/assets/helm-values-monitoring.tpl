@@ -80,6 +80,22 @@ alertmanager:
       - url: 'https://cole.prod.contiamo.io/ping/contiamo-eks-cluster'
         send_resolved: false
     - name: "null"
+    - name: slack-web-endpoint-receiver
+      slack_configs:
+      - channel: '#alerts'
+        api_url: ${ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING}
+        send_resolved: true
+        text: >-
+          {{ range .Alerts -}}
+          *Notifying:* <!subteam^S01CGLMNT5G>
+          *Description:* {{ .Annotations.message }}
+          {{ if .Annotations.runbook_url }} *Runbook Link*: <{{ .Annotations.runbook_url }}|:notebook_with_decorative_cover:>{{ end }}
+          {{ if .Annotations.grafana_url }} *Logs in Grafana*: <{{ .Annotations.grafana_url }}/{{ .Annotations.grafana_log_path }}|:chart_with_upwards_trend:>{{ end }}
+          *Details:*
+            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+          {{ end }}
+        title: '[{{ .Status | toUpper }} {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }} {{ end }}] {{ .CommonLabels.alertname }}'
     - name: slack-receiver
       slack_configs:
       - channel: '#alerts'
@@ -105,6 +121,9 @@ alertmanager:
       receiver: slack-receiver
       repeat_interval: 1h
       routes:
+      - match:
+          job: blackbox-exporter
+        receiver: slack-web-endpoint-receiver
       - match:
           alertname: Watchdog
         receiver: "null"
@@ -133,79 +152,98 @@ additionalPrometheusRulesMap:
             Probe failed
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} probe failed'
+          message: '{{ $labels.target }} probe failed in project {{ $labels.project }}'
           summary: Probe failed (instance {{ $labels.instance }})
         expr: probe_success == 0
         for: 5m
         labels:
           severity: error
+          job: blackbox-exporter
+      - alert: SlowPing
+        annotations:
+          description: |-
+            Blackbox ping took more than 2s
+              VALUE = {{ $value }}
+              LABELS: {{ $labels }}
+          message: '{{ $labels.target }} Ping took more than 2s in project {{ $labels.project }}'
+          summary: Slow ping (instance {{ $labels.instance }})
+        expr: avg_over_time(probe_icmp_duration_seconds[1m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          job: blackbox-exporter
       - alert: SlowProbe
         annotations:
           description: |-
             Blackbox probe took more than 2s to complete
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} probe took more than 2s'
+          message: '{{ $labels.target }} probe took more than 2s in project {{ $labels.project }}'
           summary: Slow probe (instance {{ $labels.instance }})
         expr: avg_over_time(probe_duration_seconds[1m]) > 2
         for: 5m
         labels:
           severity: warning
+          job: blackbox-exporter
       - alert: HttpStatusCode
         annotations:
           description: |-
             HTTP status code is not 200-399
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} HTTP status code is not 200-399'
+          message: '{{ $labels.target }} HTTP status code is not 200-399 in project {{ $labels.project }}'
           summary: HTTP Status Code (instance {{ $labels.instance }})
         expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
         for: 5m
         labels:
           severity: error
+          job: blackbox-exporter
       - alert: SslCertExpiresIn15to10Days
         annotations:
           description: |-
             SSL certificate expires in 15 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 15 to 10 days'
+          message: '{{ $labels.target }} ssl cert expires in 15 to 10 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 10 < probe_ssl_earliest_cert_expiry - time() < 86400 * 15
         for: 5m
         labels:
           severity: warning
+          job: blackbox-exporter
       - alert: SslCertExpiresIn10to5Days
         annotations:
           description: |-
             SSL certificate expires in 10 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 10 to 6 days'
+          message: '{{ $labels.target }} ssl cert expires in 10 to 6 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 5 < probe_ssl_earliest_cert_expiry - time() < 86400 * 10
         for: 5m
         labels:
           severity: warning
+          job: blackbox-exporter
       - alert: SslCertExpiresIn5Days
         annotations:
           description: |-
             SSL certificate expires in 5 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 5 days'
+          message: '{{ $labels.target }} ssl cert expires in 5 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 5 < probe_ssl_earliest_cert_expiry - time() < 86400 * 6
         for: 5m
         labels:
           severity: warning
+          job: blackbox-exporter
       - alert: SslCertExpiresIn4Days
         annotations:
           description: |-
             SSL certificate expires in 4 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 4 days'
+          message: '{{ $labels.target }} ssl cert expires in 4 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 4 < probe_ssl_earliest_cert_expiry - time() < 86400 * 5
         for: 5m
@@ -217,11 +255,12 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 3 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 3 days'
+          message: '{{ $labels.target }} ssl cert expires in 3 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 3 < probe_ssl_earliest_cert_expiry - time() < 86400 * 4
         for: 5m
         labels:
+          job: blackbox-exporter
           severity: warning
       - alert: SslCertExpiresIn1Days
         annotations:
@@ -229,24 +268,26 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 2 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 2 days'
+          message: '{{ $labels.target }} ssl cert expires in 2 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 2 < probe_ssl_earliest_cert_expiry - time() < 86400 * 3
         for: 5m
         labels:
           severity: warning
+          job: blackbox-exporter
       - alert: SslCertExpiresIn1Days
         annotations:
           description: |-
             SSL certificate expires in 1 day
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 2 days'
+          message: '{{ $labels.target }} ssl cert expires in 2 days in project {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 1 < probe_ssl_earliest_cert_expiry - time() < 86400 * 2
         for: 5m
         labels:
           severity: warning
+          job: blackbox-exporter
       - alert: SslCertificateHasExpired
         annotations:
           description: |-
@@ -258,6 +299,7 @@ additionalPrometheusRulesMap:
         for: 5m
         labels:
           severity: error
+          job: blackbox-exporter
       - alert: SslCertExpiresIn15Days
         annotations:
           description: |-
@@ -265,47 +307,38 @@ additionalPrometheusRulesMap:
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
-          message: '{{ $labels.target }} ssl cert expires in 15 days'
+          message: '{{ $labels.target }} ssl cert expires in 15 days in project {{ $labels.project }}'
         expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 15
         for: 5m
         labels:
           severity: critical
+          job: blackbox-exporter
       - alert: SslCertificateHasExpired
         annotations:
           description: |-
             SSL certificate has expired already
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} SSL certificate expired'
+          message: '{{ $labels.target }} SSL certificate expired in project {{ $labels.project }}'
           summary: SSL certificate has expired (instance {{ $labels.instance }})
         expr: probe_ssl_earliest_cert_expiry - time()  <= 0
         for: 5m
         labels:
           severity: error
+          job: blackbox-exporter
       - alert: HttpSlowRequests
         annotations:
           description: |-
             HTTP request took more than 2s
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} HTTP request took more than 2s'
+          message: '{{ $labels.target }} HTTP request took more than 2s in project {{ $labels.project }}'
           summary: HTTP slow requests (instance {{ $labels.instance }})
         expr: avg_over_time(probe_http_duration_seconds[1m]) > 2
         for: 5m
         labels:
           severity: warning
-      - alert: SlowPing
-        annotations:
-          description: |-
-            Blackbox ping took more than 2s
-              VALUE = {{ $value }}
-              LABELS: {{ $labels }}
-          message: '{{ $labels.target }} Ping took more than 2s'
-          summary: Slow ping (instance {{ $labels.instance }})
-        expr: avg_over_time(probe_icmp_duration_seconds[1m]) > 2
-        for: 5m
-        labels:
-          severity: warning
+          job: blackbox-exporter
     - name: contiamo-rules
       rules:
       - alert: HeartBeat

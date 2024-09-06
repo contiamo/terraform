@@ -119,6 +119,7 @@ resource "helm_release" "monitoring" {
         ALERT_MANAGER_INGRESS_CLASS_NAME = var.alert_manager_ingress_class_name,
         ALERT_MANAGER_HOST               = var.alert_manager_host,
         ALERT_MANAGER_SLACK_WEBHOOK_URL  = var.alert_manager_slack_webhook_url,
+        ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING = var.alert_manager_slack_webhook_url_web_endpoint_monitoring,
       }
     )
   ]

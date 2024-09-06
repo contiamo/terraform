@@ -62,6 +62,11 @@ variable "alert_manager_slack_webhook_url" {
   type        = string
   sensitive   = true
 }
+variable "alert_manager_slack_webhook_url_web_endpoint_monitoring" {
+  description = "The Slack Webhook URL for the Web Endpoint monitoring (blackbox exporter)"
+  type        = string
+  sensitive   = true
+}
 variable "cert_manager_cluster_issuer_name" {
   description = "The name of the Cert Manager Cluster Issuer"
   type        = string
