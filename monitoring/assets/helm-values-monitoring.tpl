@@ -82,18 +82,24 @@ alertmanager:
     - name: "null"
     - name: slack-web-endpoint-receiver
       slack_configs:
-      - channel: '#alerts'
-        api_url: ${ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING}
+      - api_url: ${ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING}
+        channel: '#alerts'
         send_resolved: true
-        text: >-
+        text: |-
           {{ range .Alerts -}}
           *Notifying:* <!subteam^S01CGLMNT5G>
           *Description:* {{ .Annotations.message }}
           {{ if .Annotations.runbook_url }} *Runbook Link*: <{{ .Annotations.runbook_url }}|:notebook_with_decorative_cover:>{{ end }}
           {{ if .Annotations.grafana_url }} *Logs in Grafana*: <{{ .Annotations.grafana_url }}/{{ .Annotations.grafana_log_path }}|:chart_with_upwards_trend:>{{ end }}
+          *Endpoint Info:*
+          {{- range $key, $value := .Labels }}
+            {{- if match "^metadata_" $key }}
+              *{{ $key | reReplaceAll "^metadata_" "" }}:* {{ $value }}
+            {{- end }}
+          {{- end }}
           *Alert Details:*
-            {{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
-            {{ end }}
+            *alertname:* `{{ .Labels.alertname }}`
+            *endpoint:* `{{ .Labels.target }}`
           {{ end }}
         title: '[{{ .Status | toUpper }} {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }} {{ end }}] {{ .CommonLabels.alertname }}'
     - name: slack-receiver
@@ -152,7 +158,7 @@ additionalPrometheusRulesMap:
             Probe failed
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} probe failed in project {{ $labels.project }}'
+          message: '{{ $labels.target }} probe failed. Project: {{ $labels.project }}'
           summary: Probe failed (instance {{ $labels.instance }})
         expr: probe_success == 0
         for: 5m
@@ -165,7 +171,7 @@ additionalPrometheusRulesMap:
             Blackbox ping took more than 2s
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} Ping took more than 2s in project {{ $labels.project }}'
+          message: '{{ $labels.target }} Ping took more than 2s. Project: {{ $labels.project }}'
           summary: Slow ping (instance {{ $labels.instance }})
         expr: avg_over_time(probe_icmp_duration_seconds[1m]) > 2
         for: 5m
@@ -178,7 +184,7 @@ additionalPrometheusRulesMap:
             Blackbox probe took more than 2s to complete
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} probe took more than 2s in project {{ $labels.project }}'
+          message: '{{ $labels.target }} probe took more than 2s. Project: {{ $labels.project }}'
           summary: Slow probe (instance {{ $labels.instance }})
         expr: avg_over_time(probe_duration_seconds[1m]) > 2
         for: 5m
@@ -191,7 +197,7 @@ additionalPrometheusRulesMap:
             HTTP status code is not 200-399
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} HTTP status code is not 200-399 in project {{ $labels.project }}'
+          message: '{{ $labels.target }} HTTP status code is not 200-399. Project: {{ $labels.project }}'
           summary: HTTP Status Code (instance {{ $labels.instance }})
         expr: probe_http_status_code <= 199 OR probe_http_status_code >= 400
         for: 5m
@@ -204,7 +210,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 15 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 15 to 10 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 15 to 10 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 10 < probe_ssl_earliest_cert_expiry - time() < 86400 * 15
         for: 5m
@@ -217,7 +223,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 10 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 10 to 6 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 10 to 6 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 5 < probe_ssl_earliest_cert_expiry - time() < 86400 * 10
         for: 5m
@@ -230,7 +236,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 5 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 5 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 5 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 5 < probe_ssl_earliest_cert_expiry - time() < 86400 * 6
         for: 5m
@@ -243,7 +249,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 4 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 4 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 4 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 4 < probe_ssl_earliest_cert_expiry - time() < 86400 * 5
         for: 5m
@@ -255,7 +261,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 3 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 3 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 3 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 3 < probe_ssl_earliest_cert_expiry - time() < 86400 * 4
         for: 5m
@@ -268,7 +274,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 2 days
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 2 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 2 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 2 < probe_ssl_earliest_cert_expiry - time() < 86400 * 3
         for: 5m
@@ -281,7 +287,7 @@ additionalPrometheusRulesMap:
             SSL certificate expires in 1 day
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} ssl cert expires in 2 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 2 days. Project: {{ $labels.project }}'
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
         expr: 86400 * 1 < probe_ssl_earliest_cert_expiry - time() < 86400 * 2
         for: 5m
@@ -307,7 +313,7 @@ additionalPrometheusRulesMap:
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
           summary: SSL certificate will expire soon (instance {{ $labels.instance }})
-          message: '{{ $labels.target }} ssl cert expires in 15 days in project {{ $labels.project }}'
+          message: '{{ $labels.target }} ssl cert expires in 15 days. Project: {{ $labels.project }}'
         expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 15
         for: 5m
         labels:
@@ -319,7 +325,7 @@ additionalPrometheusRulesMap:
             SSL certificate has expired already
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} SSL certificate expired in project {{ $labels.project }}'
+          message: '{{ $labels.target }} SSL certificate expired. Project: {{ $labels.project }}'
           summary: SSL certificate has expired (instance {{ $labels.instance }})
         expr: probe_ssl_earliest_cert_expiry - time()  <= 0
         for: 5m
@@ -332,7 +338,7 @@ additionalPrometheusRulesMap:
             HTTP request took more than 2s
               VALUE = {{ $value }}
               LABELS: {{ $labels }}
-          message: '{{ $labels.target }} HTTP request took more than 2s in project {{ $labels.project }}'
+          message: '{{ $labels.target }} HTTP request took more than 2s. Project: {{ $labels.project }}'
           summary: HTTP slow requests (instance {{ $labels.instance }})
         expr: avg_over_time(probe_http_duration_seconds[1m]) > 2
         for: 5m
