@@ -53,7 +53,19 @@ alertmanager:
     - secretName: ${ALERT_MANAGER_HOST}-tls-auto-generated
       hosts:
       - ${ALERT_MANAGER_HOST}
-
+  templateFiles:
+  ## An example template:
+    alert_template.tmpl: |-
+        {{/* Alertmanager Silence link */}}
+        {{ define "__alert_silence_link" -}}
+            {{ .ExternalURL }}/#/silences/new?filter=%7B
+            {{- range .CommonLabels.SortedPairs -}}
+                {{- if ne .Name "alertname" -}}
+                    {{- .Name }}%3D"{{- .Value -}}"%2C%20
+                {{- end -}}
+            {{- end -}}
+            alertname%3D"{{- .CommonLabels.alertname -}}"%7D
+        {{- end }}
   config:
     global:
       resolve_timeout: 5m
@@ -85,6 +97,10 @@ alertmanager:
       - api_url: ${ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING}
         channel: '#alerts'
         send_resolved: true
+        actions:
+          - type: button
+            text: 'Silence :no_bell:'
+            url: '{{ template "__alert_silence_link" . }}'
         text: |-
           {{ range .Alerts -}}
           *Notifying:* <!subteam^S01CGLMNT5G>
@@ -146,7 +162,7 @@ alertmanager:
         group_interval: 50s
         repeat_interval: 40s
     templates:
-    - /etc/alertmanager/template/*.tmpl
+    - '/etc/alertmanager/config/*.tmpl'
 
 additionalPrometheusRulesMap:
 - groups:
