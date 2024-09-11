@@ -87,10 +87,10 @@ alertmanager:
           - alertname
 
     receivers:
-    - name: 'cole'
-      webhook_configs:
-      - url: 'https://cole.prod.contiamo.io/ping/contiamo-eks-cluster'
-        send_resolved: false
+    # - name: 'cole'
+    #   webhook_configs:
+    #   - url: 'https://cole.prod.contiamo.io/ping/contiamo-eks-cluster'
+    #     send_resolved: false
     - name: "null"
     - name: slack-web-endpoint-receiver
       slack_configs:
@@ -157,7 +157,7 @@ alertmanager:
         receiver: "null"
       - match:
           alertname: HeartBeat
-        receiver: 'cole'
+        receiver: 'null'
         group_wait: 0s
         group_interval: 50s
         repeat_interval: 40s
