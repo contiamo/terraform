@@ -90,14 +90,9 @@ alertmanager:
                       *{{ $key | reReplaceAll "^metadata_" "" }}:* {{ $value }}
                     {{- end }}
                   {{- end }}
-                {{- end }}
-                    {{- if .Labels.target }}
-                      *endpoint*: `{{ .Labels.target }}`
-                    {{- end }}
-                    {{- if .Labels.alertname }}
-                      *alertname:* `{{ .Labels.alertname }}`
-                    {{- end }}
+            {{- end }}
         {{- end }}
+
 
   config:
     global:
