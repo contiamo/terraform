@@ -91,8 +91,12 @@ alertmanager:
                     {{- end }}
                   {{- end }}
                 {{- end }}
+                    {{- if .Labels.target }}
                       *endpoint*: `{{ .Labels.target }}`
+                    {{- end }}
+                    {{- if .Labels.alertname }}
                       *alertname:* `{{ .Labels.alertname }}`
+                    {{- end }}
         {{- end }}
 
   config:
