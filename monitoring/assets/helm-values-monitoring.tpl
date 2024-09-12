@@ -66,34 +66,6 @@ alertmanager:
             {{- end -}}
             alertname%3D"{{- .CommonLabels.alertname -}}"%7D
         {{- end }}
-    web_endpoint_text_template.tmpl: |-
-        {{ define "slack.webendpoint_text" -}}
-            {{ range .Alerts }}
-                *Notifying:* <!subteam^S01CGLMNT5G>
-
-                {{- if .Annotations.description }}
-                {{- "\n" -}}
-                {{ .Annotations.description }}
-                {{- "\n" -}}
-                {{- end }}
-                {{- if .Annotations.message }}
-                {{- "\n" -}}
-                {{ .Annotations.message }}
-                {{- "\n" -}}
-                {{- end }}
-                {{ if .Annotations.runbook_url }}
-                *Runbook Link*: <{{ .Annotations.runbook_url }}|:notebook_with_decorative_cover:>
-                {{- end }}
-                *Endpoint Info:*
-                  {{- range $key, $value := .Labels }}
-                    {{- if match "^metadata_" $key }}
-                      *{{ $key | reReplaceAll "^metadata_" "" }}:* {{ $value }}
-                    {{- end }}
-                  {{- end }}
-            {{- end }}
-        {{- end }}
-
-
   config:
     global:
       resolve_timeout: 5m
@@ -129,7 +101,22 @@ alertmanager:
           - type: button
             text: 'Silence :no_bell:'
             url: '{{ template "__alert_silence_link" . }}'
-        text: '{{ template "slack.webendpoint_text" . }}'
+        text: |-
+          {{ range .Alerts -}}
+          *Notifying:* <!subteam^S01CGLMNT5G>
+          *Description:* {{ .Annotations.message }}
+          {{ if .Annotations.runbook_url }} *Runbook Link*: <{{ .Annotations.runbook_url }}|:notebook_with_decorative_cover:>{{ end }}
+          {{ if .Annotations.grafana_url }} *Logs in Grafana*: <{{ .Annotations.grafana_url }}/{{ .Annotations.grafana_log_path }}|:chart_with_upwards_trend:>{{ end }}
+          *Endpoint Info:*
+          {{- range $key, $value := .Labels }}
+            {{- if match "^metadata_" $key }}
+              *{{ $key | reReplaceAll "^metadata_" "" }}:* {{ $value }}
+            {{- end }}
+          {{- end }}
+          *Alert Details:*
+            *alertname:* `{{ .Labels.alertname }}`
+            *endpoint:* `{{ .Labels.target }}`
+          {{ end }}
         title: '[{{ .Status | toUpper }} {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }} {{ end }}] {{ .CommonLabels.alertname }}'
     - name: slack-receiver
       slack_configs:
