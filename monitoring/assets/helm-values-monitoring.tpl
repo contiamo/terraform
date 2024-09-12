@@ -66,7 +66,7 @@ alertmanager:
             {{- end -}}
             alertname%3D"{{- .CommonLabels.alertname -}}"%7D
         {{- end }}
-    web_endpoint_text_template.tpl: |-
+    web_endpoint_text_template.tmpl: |-
         {{ define "slack.webendpoint_text" -}}
             {{ range .Alerts }}
                 *Notifying:* <!subteam^S01CGLMNT5G>
