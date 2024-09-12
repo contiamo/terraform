@@ -103,7 +103,7 @@ alertmanager:
             url: '{{ template "__alert_silence_link" . }}'
         text: |-
           {{ range .Alerts -}}
-          *Notifying:* <!subteam^S01CGLMNT5G>
+          <!subteam^S01CGLMNT5G>
           *Description:* {{ .Annotations.message }}
           *Endpoint Info:*
           {{- range $key, $value := .Labels }}
@@ -112,8 +112,8 @@ alertmanager:
             {{- end }}
           {{- end }}
           *Alert Details:*
-            *alertname:* `{{ .Labels.alertname }}`
-            *endpoint:* `{{ .Labels.target }}`
+              *alertname:* `{{ .Labels.alertname }}`
+              *endpoint:* `{{ .Labels.target }}`
           {{ end }}
         title: '[{{ .Status | toUpper }} {{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }} {{ end }}] {{ .CommonLabels.alertname }}'
     - name: slack-receiver
