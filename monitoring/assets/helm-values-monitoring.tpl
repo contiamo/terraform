@@ -66,7 +66,7 @@ alertmanager:
             {{- end -}}
             alertname%3D"{{- .CommonLabels.alertname -}}"%7D
         {{- end }}
-    web_endpoint_text_template: |-
+    web_endpoint_text_template.tpl: |-
         {{ define "slack.webendpoint_text" -}}
             {{ range .Alerts }}
                 *Notifying:* <!subteam^S01CGLMNT5G>
@@ -379,7 +379,7 @@ additionalPrometheusRulesMap:
       rules:
       - alert: HeartBeat
         annotations:
-          message: "Heartbeat alert from Prometheus. *Notifying:* <!subteam^S01CGLMNT5G>. *Runbook Link*: <https://github.com/contiamo/cole#how-does-it-work|:notebook_with_decorative_cover:>"
+          message: "Heartbeat alert from Prometheus. *Runbook Link*: <https://github.com/contiamo/cole#how-does-it-work|:notebook_with_decorative_cover:>"
           environment: "ENV_SLUG_PLACEHOLDER"
         expr: vector(1)
         labels:
