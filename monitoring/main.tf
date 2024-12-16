@@ -148,6 +148,8 @@ resource "helm_release" "promtail" {
 }
 
 resource "helm_release" "blackbox_exporter" {
+  count = var.blackbox_exporter ? 1 : 0
+
   depends_on = [
     kubernetes_namespace_v1.monitoring,
     helm_release.monitoring,
