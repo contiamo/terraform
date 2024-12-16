@@ -88,5 +88,5 @@ variable "blackbox_exporter_version" {
 variable "blackbox_exporter" {
   description = "Whether to install the Blackbox Exporter"
   type        = bool
-  default     = false
+  default     = true
 }
