@@ -83,4 +83,10 @@ variable "promtail_version" {
 variable "blackbox_exporter_version" {
   type        = string
   description = "Blackbox exporter version."
+  default     = "9.0.0"
+}
+variable "blackbox_exporter" {
+  description = "Whether to install the Blackbox Exporter"
+  type        = bool
+  default     = false
 }
