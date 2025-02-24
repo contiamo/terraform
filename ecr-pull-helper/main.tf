@@ -78,7 +78,7 @@ resource "kubernetes_cron_job_v1" "ecr_registry_helper" {
 
   spec {
     concurrency_policy            = "Forbid"
-    schedule                      = "0 */10 * * *"
+    schedule                      = "0 * * * *"
     suspend                       = false
     failed_jobs_history_limit     = 3
     successful_jobs_history_limit = 3
