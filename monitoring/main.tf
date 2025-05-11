@@ -156,7 +156,7 @@ resource "helm_release" "grafana_alloy" {
             forward_to = [loki.write.local.receiver]
           }
 
-          loki.source.kubernetes_logs "pods" {
+          loki.source.kubernetes "pods" {
             forward_to = [loki.write.local.receiver]
             targets = discovery.kubernetes.pods.targets
           }
