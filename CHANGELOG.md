@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.2](https://github.com/contiamo/terraform/compare/v0.6.1...v0.6.2) (2025-05-11)
+
+
+### Bug Fixes
+
+* Use loki.source.kubernetes for Alloy ([8a37e9a](https://github.com/contiamo/terraform/commit/8a37e9a87dbda92fcf27840102f9541ad6c5edd7))
+
 ### [0.6.1](https://github.com/contiamo/terraform/compare/v0.6.0...v0.6.1) (2025-05-11)
 
 
