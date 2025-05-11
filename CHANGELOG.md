@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.1](https://github.com/contiamo/terraform/compare/v0.6.0...v0.6.1) (2025-05-11)
+
+
+### Bug Fixes
+
+* Remove comments from alloy config ([bbebac8](https://github.com/contiamo/terraform/commit/bbebac8811a8af767c4f29e720e39591eff743cb))
+
 ## [0.6.0](https://github.com/contiamo/terraform/compare/v0.5.0...v0.6.0) (2025-05-11)
 
 
