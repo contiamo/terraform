@@ -125,27 +125,59 @@ resource "helm_release" "monitoring" {
   ]
 }
 
-# Install Promtail:
-resource "helm_release" "promtail" {
-  # Based on https://grafana.com/docs/loki/latest/send-data/promtail/installation/
+resource "helm_release" "grafana_alloy" {
   depends_on = [
     kubernetes_namespace_v1.monitoring,
     helm_release.loki,
   ]
-  name       = "promtail"
+  name       = "alloy-v1"
   repository = "https://grafana.github.io/helm-charts"
-  chart      = "promtail"
-  version    = var.promtail_version
+  chart      = "alloy"
+  version    = "1.0.2"
   namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
+  # Values are based on https://hodovi.cc/blog/kubernetes-events-monitoring-with-loki-alloy-and-grafana/
   values = [
-    templatefile("${path.module}/assets/helm-values-promtail.tpl",
-      {
-        LOKI_ENDPOINT = "http://loki-gateway/loki/api/v1/push",
-        TENANT_ID     = "1",
-      }
-    )
+    <<-EOT
+    controller:
+      type: 'statefulset'
+      replicas: 1
+
+    alloy:
+      configMap:
+        create: true
+        content: |
+          logging {
+            level = "info"
+            format = "logfmt"
+          }
+
+          # Collect Kubernetes events
+          loki.source.kubernetes_events "events" {
+            log_format = "json"
+            forward_to = [loki.write.local.receiver]
+          }
+
+          # Collect Kubernetes pod logs
+          loki.source.kubernetes_logs "pods" {
+            forward_to = [loki.write.local.receiver]
+            targets = discovery.kubernetes.pods.targets
+          }
+
+          # Add Kubernetes pods discovery
+          discovery.kubernetes "pods" {
+            role = "pod"
+          }
+
+          loki.write "local" {
+            endpoint {
+              url = "http://loki-write:3100/loki/api/v1/push"
+            }
+          }
+
+    EOT
   ]
 }
+
 
 resource "helm_release" "blackbox_exporter" {
   count = var.blackbox_exporter ? 1 : 0
