@@ -151,19 +151,16 @@ resource "helm_release" "grafana_alloy" {
             format = "logfmt"
           }
 
-          # Collect Kubernetes events
           loki.source.kubernetes_events "events" {
             log_format = "json"
             forward_to = [loki.write.local.receiver]
           }
 
-          # Collect Kubernetes pod logs
           loki.source.kubernetes_logs "pods" {
             forward_to = [loki.write.local.receiver]
             targets = discovery.kubernetes.pods.targets
           }
 
-          # Add Kubernetes pods discovery
           discovery.kubernetes "pods" {
             role = "pod"
           }
