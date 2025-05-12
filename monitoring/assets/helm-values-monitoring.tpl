@@ -30,6 +30,23 @@ grafana:
    requests:
      cpu: 100m
      memory: 128Mi
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 30
+    timeoutSeconds: 45
+    failureThreshold: 10
+    periodSeconds: 60
+
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 60
+    timeoutSeconds: 45
+    failureThreshold: 10
+    periodSeconds: 60
 # Disabled alerts:
 defaultRules:
   disabled:
