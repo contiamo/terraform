@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.6.3](https://github.com/contiamo/terraform/compare/v0.6.2...v0.6.3) (2025-05-12)
+
+
+### Bug Fixes
+
+* Increase proble timeouts for Grafana ([9e79b74](https://github.com/contiamo/terraform/commit/9e79b7414c6c39820d87b873f26d034897308f5d))
+
 ### [0.6.2](https://github.com/contiamo/terraform/compare/v0.6.1...v0.6.2) (2025-05-11)
 
 
