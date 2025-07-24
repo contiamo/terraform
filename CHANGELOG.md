@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/contiamo/terraform/compare/v0.6.2...v0.7.0) (2025-07-24)
+
+
+### Features
+
+* add deployment labels to Alloy log collection ([7352a44](https://github.com/contiamo/terraform/commit/7352a442494c97cb2660026901f2fd0eae015f9d))
+
+
+### Bug Fixes
+
+* Increase proble timeouts for Grafana ([9e79b74](https://github.com/contiamo/terraform/commit/9e79b7414c6c39820d87b873f26d034897308f5d))
+
 ### [0.6.2](https://github.com/contiamo/terraform/compare/v0.6.1...v0.6.2) (2025-05-11)
 
 
