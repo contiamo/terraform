@@ -156,13 +156,90 @@ resource "helm_release" "grafana_alloy" {
             forward_to = [loki.write.local.receiver]
           }
 
-          loki.source.kubernetes "pods" {
-            forward_to = [loki.write.local.receiver]
-            targets = discovery.kubernetes.pods.targets
-          }
-
           discovery.kubernetes "pods" {
             role = "pod"
+          }
+
+          discovery.relabel "pods" {
+            targets = discovery.kubernetes.pods.targets
+
+            // Add namespace label
+            rule {
+              source_labels = ["__meta_kubernetes_namespace"]
+              target_label  = "namespace"
+            }
+
+            // Add pod name
+            rule {
+              source_labels = ["__meta_kubernetes_pod_name"]
+              target_label  = "pod"
+            }
+
+            // Add container name
+            rule {
+              source_labels = ["__meta_kubernetes_pod_container_name"]
+              target_label  = "container"
+            }
+
+            // Add app label from pod labels
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_app"]
+              target_label  = "app"
+            }
+
+            // Add app.kubernetes.io/name label
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+              target_label  = "app_name"
+            }
+
+            // Add app.kubernetes.io/instance label
+            rule {
+              source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
+              target_label  = "app_instance"
+            }
+
+            // Extract deployment name from pod controller
+            rule {
+              source_labels = ["__meta_kubernetes_pod_controller_kind", "__meta_kubernetes_pod_controller_name"]
+              separator     = ";"
+              regex         = "ReplicaSet;(.+)-[a-z0-9]+"
+              target_label  = "deployment"
+            }
+
+            // Add statefulset name if applicable
+            rule {
+              source_labels = ["__meta_kubernetes_pod_controller_kind", "__meta_kubernetes_pod_controller_name"]
+              separator     = ";"
+              regex         = "StatefulSet;(.+)"
+              target_label  = "statefulset"
+            }
+
+            // Add daemonset name if applicable
+            rule {
+              source_labels = ["__meta_kubernetes_pod_controller_kind", "__meta_kubernetes_pod_controller_name"]
+              separator     = ";"
+              regex         = "DaemonSet;(.+)"
+              target_label  = "daemonset"
+            }
+
+            // Add node name
+            rule {
+              source_labels = ["__meta_kubernetes_pod_node_name"]
+              target_label  = "node"
+            }
+
+            // Keep only running pods
+            rule {
+              source_labels = ["__meta_kubernetes_pod_phase"]
+              regex         = "Pending|Running"
+              action        = "keep"
+            }
+          }
+
+          loki.source.kubernetes "pods" {
+            targets    = discovery.relabel.pods.output
+            forward_to = [loki.write.local.receiver]
           }
 
           loki.write "local" {
