@@ -36,7 +36,7 @@ resource "aws_iam_policy" "loki_storage_policy" {
 }
 
 module "loki_service_account_role" {
-  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
   role_name = "loki-svc-account-role"
   role_policy_arns = {
     bucket = aws_iam_policy.loki_storage_policy.arn,
