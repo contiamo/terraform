@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.7.1](https://github.com/contiamo/terraform/compare/v0.7.0...v0.7.1) (2025-09-01)
+
+
+### Bug Fixes
+
+* EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
+
 ## [0.7.0](https://github.com/contiamo/terraform/compare/v0.6.2...v0.7.0) (2025-07-24)
 
 
