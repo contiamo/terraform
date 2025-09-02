@@ -68,10 +68,10 @@ resource "helm_release" "loki" {
   values = [
     templatefile("${path.module}/assets/helm-values-loki.tpl",
       {
-        LOKI_BUCKET_AWS_REGION        = data.aws_region.current.name,
+        LOKI_BUCKET_AWS_REGION        = data.aws_region.current.id,
         LOKI_STORAGE_BUCKET_NAME      = aws_s3_bucket.loki_storage.id,
         LOKI_SVC_ACCOUNT_NAME         = local.loki_svc_account_name,
-        LOKI_SVC_ACCOUNT_IAM_ROLE_ARN = module.loki_service_account_role.iam_role_arn,
+        LOKI_SVC_ACCOUNT_IAM_ROLE_ARN = module.loki_service_account_role.arn,
       }
     )
   ]
