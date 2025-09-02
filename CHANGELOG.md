@@ -1,5 +1,12 @@
 # Changelog
 
+### [0.7.3](https://github.com/contiamo/terraform/compare/v0.7.2...v0.7.3) (2025-09-02)
+
+
+### Bug Fixes
+
+* update IAM module output references and AWS region attribute ([751f0c1](https://github.com/contiamo/terraform/commit/751f0c14a0869de09d257a2dd839789c73beeb75))
+
 ### [0.7.2](https://github.com/contiamo/terraform/compare/v0.7.1...v0.7.2) (2025-09-02)
 
 
