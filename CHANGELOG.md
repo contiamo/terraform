@@ -1,5 +1,13 @@
 # Changelog
 
+### [0.7.4](https://github.com/contiamo/terraform/compare/v0.7.3...v0.7.4) (2025-09-12)
+
+
+### Miscellaneous
+
+* fix memory ([c1e32a2](https://github.com/contiamo/terraform/commit/c1e32a25131132b80c0f071febab55f361c3b961))
+* increase Grafana's cpu resources ([0d64669](https://github.com/contiamo/terraform/commit/0d646694ac1e321904d00d0244d5f50f033f2240))
+
 ### [0.7.3](https://github.com/contiamo/terraform/compare/v0.7.2...v0.7.3) (2025-09-02)
 
 
