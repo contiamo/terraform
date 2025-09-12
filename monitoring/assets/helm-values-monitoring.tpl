@@ -25,10 +25,10 @@ grafana:
          - ${GRAFANA_HOST}
   resources:
    limits:
-     cpu: 100m
+     cpu: 250m
      memory: 128Mi
    requests:
-     cpu: 100m
+     cpu: 500m
      memory: 128Mi
   readinessProbe:
     httpGet:
