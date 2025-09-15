@@ -25,11 +25,11 @@ grafana:
          - ${GRAFANA_HOST}
   resources:
    limits:
-     cpu: 250m
+     cpu: 200m
      memory: 512Mi
    requests:
-     cpu: 500m
-     memory: 1Gi
+     cpu: 200m
+     memory: 256Mi
   readinessProbe:
     httpGet:
       path: /api/health
