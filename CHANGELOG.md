@@ -1,5 +1,14 @@
 # Changelog
 
+### [0.7.5](https://github.com/contiamo/terraform/compare/v0.7.4...v0.7.5) (2025-09-15)
+
+
+### Miscellaneous
+
+* increase memory only, remove old fix ([8484537](https://github.com/contiamo/terraform/commit/84845378fac207dc88a60a82e3bd2ec0cba22c5e))
+* update the NginxError alert and add more resources ([ca0ae25](https://github.com/contiamo/terraform/commit/ca0ae252f65e49e3cd44f89b6a45895f3896700e))
+* update the NginxError alert and add more resources ([0905f66](https://github.com/contiamo/terraform/commit/0905f666e8198bc09b0a28958e779d0e7a691150))
+
 ### [0.7.4](https://github.com/contiamo/terraform/compare/v0.7.3...v0.7.4) (2025-09-12)
 
 
