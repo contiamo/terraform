@@ -632,7 +632,7 @@ additionalPrometheusRulesMap:
           message: Ingress {{ $labels.ingress }} non 4**/5** response rate is {{ $value }} over last 1m.
           runbook_url: https://github.com/contiamo/ops-docs/tree/master/runbook
         expr: |-
-            sum(rate(nginx_ingress_controller_request_duration_seconds_count{status =~"[4-5].*",}[1m])) > 0.00
+            sum(rate(nginx_ingress_controller_request_duration_seconds_count{status =~"[4-5].*",}[1m])) > 1.00
         for: 5m
         labels:
           severity: warning
