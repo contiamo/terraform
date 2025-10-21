@@ -100,6 +100,27 @@ extra-files:
   - type: generic
     path: azure-openai/README.md
     use-prefix: "v"
+  - type: generic
+    path: monitoring/README.md
+    use-prefix: "v"
+  - type: generic
+    path: github/README.md
+    use-prefix: "v"
+  - type: generic
+    path: ecr-pull-helper/README.md
+    use-prefix: "v"
+  - type: generic
+    path: external-dns/README.md
+    use-prefix: "v"
+  - type: generic
+    path: slack/README.md
+    use-prefix: "v"
+  - type: generic
+    path: tailscale/README.md
+    use-prefix: "v"
+  - type: generic
+    path: datahub/README.md
+    use-prefix: "v"
   # YAML file example (e.g., Helm charts, Kubernetes manifests):
   # - type: yaml
   #   path: charts/myapp/Chart.yaml

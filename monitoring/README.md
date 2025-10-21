@@ -7,7 +7,9 @@ This is all you need to monitor your EKS cluster.
 
 ```hcl
 module "monitoring" {
-  source                            = "github.com/contiamo/terraform//monitoring"
+  # contiamo-release-please-bump-start
+  source                            = "github.com/contiamo/terraform//monitoring?ref=v0.8.0"
+  # contiamo-release-please-bump-end
   target_namespace                  = "monitoring"
   kube_prometheus_version           = "60.2.0"
   promtail_version                  = "6.16.0"
