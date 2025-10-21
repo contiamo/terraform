@@ -50,10 +50,11 @@ resource "azurerm_cognitive_account" "this" {
 resource "azurerm_cognitive_deployment" "this" {
   for_each = var.deployment
 
-  cognitive_account_id   = azurerm_cognitive_account.this.id
-  name                   = each.value.name
-  rai_policy_name        = each.value.rai_policy_name
-  version_upgrade_option = each.value.version_upgrade_option
+  cognitive_account_id       = azurerm_cognitive_account.this.id
+  name                       = each.value.name
+  rai_policy_name            = each.value.rai_policy_name
+  version_upgrade_option     = each.value.version_upgrade_option
+  dynamic_throttling_enabled = each.value.dynamic_throttling_enabled
 
   model {
     format  = each.value.model_format
@@ -61,8 +62,8 @@ resource "azurerm_cognitive_deployment" "this" {
     version = each.value.model_version
   }
 
-  scale {
-    type     = each.value.scale_type
+  sku {
+    name     = each.value.sku_name
     capacity = try(each.value.capacity, 1)
   }
 }

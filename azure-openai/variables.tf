@@ -42,15 +42,15 @@ variable "customer_managed_key" {
 
 variable "deployment" {
   type = map(object({
-    name                   = string
-    model_format           = string
-    model_name             = string
-    model_version          = string
-    scale_type             = string
-    rai_policy_name        = optional(string)
-    capacity               = optional(number)
-    version_upgrade_option = optional(string)
-    sku_name               = optional(string)
+    name                       = string
+    model_format               = string
+    model_name                 = string
+    model_version              = string
+    sku_name                   = string
+    rai_policy_name            = optional(string)
+    capacity                   = optional(number)
+    version_upgrade_option     = optional(string)
+    dynamic_throttling_enabled = optional(bool)
   }))
   default     = {}
   description = <<-DESCRIPTION
@@ -58,14 +58,15 @@ variable "deployment" {
         name                 = (Required) The name of the Cognitive Services Account Deployment. Changing this forces a new resource to be created.
         cognitive_account_id = (Required) The ID of the Cognitive Services Account. Changing this forces a new resource to be created.
         model = {
-          model_format  = (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created. Possible value is OpenAI.
+          model_format  = (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
           model_name    = (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
           model_version = (Required) The version of Cognitive Services Account Deployment model.
         }
-        scale = {
-          scale_type = (Required) Deployment scale type. Possible value is Standard. Changing this forces a new resource to be created.
+        sku = {
+          sku_name = (Required) The name of the SKU. Possible values include Standard, DataZoneBatch, DataZoneStandard, DataZoneProvisionedManaged, GlobalBatch, GlobalProvisionedManaged, GlobalStandard, and ProvisionedManaged.
         }
         capacity = (Optional) Tokens-per-Minute (TPM). The unit of measure for this field is in the thousands of Tokens-per-Minute. Defaults to 1 which means that the limitation is 1000 tokens per minute.
+        dynamic_throttling_enabled = (Optional) Whether dynamic throttling is enabled.
         rai_policy_name = (Optional) The name of RAI policy. Changing this forces a new resource to be created.
         version_upgrade_option = (Optional) Deployment model version upgrade option. Possible values are `OnceNewDefaultVersionAvailable`, `OnceCurrentVersionExpired`, and `NoAutoUpgrade`. Defaults to `OnceNewDefaultVersionAvailable`. Changing this forces a new resource to be created.
       }))
