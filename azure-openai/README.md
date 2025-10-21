@@ -59,11 +59,11 @@ module "openai" {
 
 ### Complete Example with Private Endpoint
 
-<!--contiamo-release-please-bump-start-->
-
 ```hcl
 module "openai" {
+# contiamo-release-please-bump-start
   source                         = "github.com/contiamo/terraform//azure-openai?ref=v0.7.5"
+# contiamo-release-please-bump-end
   resource_group_name            = "my-resource-group"
   location                       = "eastus"
   account_name                   = "my-openai-account"
@@ -121,8 +121,6 @@ module "openai" {
   }
 }
 ```
-
-<!--contiamo-release-please-bump-end-->
 
 ## Inputs
 
