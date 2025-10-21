@@ -38,6 +38,21 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.8.0] (2025-10-21)
+
+### Features
+
+* Upgrade Azure OpenAI module to the latest Azurerm provider
+
+### Bug Fixes
+
+* Update azurerm provider version to 4.47
+
+### Miscellaneous Changes
+
+* fic Ctmo release please config
+* Replace reklease-please with Contiamo Release Please
+
 ## [0.7.0](https://github.com/contiamo/terraform/compare/v0.6.2...v0.7.0) (2025-07-24)
 
 
