@@ -13,7 +13,7 @@ module "datahub" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//datahub"
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//datahub?ref=v0.8.0"
+  source = "github.com/contiamo/terraform//datahub?ref=v0.8.1"
   # contiamo-release-please-bump-end
   datahub_namespace = "[your namespace]"
   ui_ingress_host = "[UI domain]"

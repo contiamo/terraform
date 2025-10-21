@@ -10,7 +10,7 @@ module "github" {
     # To reference as a private repo use "git@github.com:/contiamo...:
     # source = "git@github.com:contiamo/terraform.git//github"
     # contiamo-release-please-bump-start
-    source = "github.com/contiamo/terraform//github?ref=v0.8.0"
+    source = "github.com/contiamo/terraform//github?ref=v0.8.1"
     # contiamo-release-please-bump-end
     repo_name = var.project_name
     repo_description = var.project_description
