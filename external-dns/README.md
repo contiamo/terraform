@@ -17,7 +17,7 @@ module "external_dns" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//external-dns"
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//external-dns?ref=v0.8.0"
+  source = "github.com/contiamo/terraform//external-dns?ref=v0.8.1"
   # contiamo-release-please-bump-end
   aws_region         = var.aws_region
   provider_arn       = [ Your EKS OIDC Provider ARN ]

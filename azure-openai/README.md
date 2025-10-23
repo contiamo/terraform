@@ -37,7 +37,7 @@ This fork includes breaking changes to align with Azure provider updates:
 ```hcl
 module "openai" {
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//azure-openai?ref=v0.8.0"
+  source = "github.com/contiamo/terraform//azure-openai?ref=v0.8.1"
   # contiamo-release-please-bump-end
 
   resource_group_name = "my-resource-group"
@@ -62,7 +62,7 @@ module "openai" {
 ```hcl
 module "openai" {
 # contiamo-release-please-bump-start
-  source                         = "github.com/contiamo/terraform//azure-openai?ref=v0.8.0"
+  source                         = "github.com/contiamo/terraform//azure-openai?ref=v0.8.1"
 # contiamo-release-please-bump-end
   resource_group_name            = "my-resource-group"
   location                       = "eastus"
