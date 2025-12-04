@@ -38,6 +38,16 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.9.0] (2025-12-04)
+
+### Features
+
+* Add Langfuse module
+
+### Miscellaneous Changes
+
+* Minor cosmetic changes to Langfuse
+
 ## [0.8.1] (2025-10-21)
 
 ### Documentation
