@@ -29,7 +29,7 @@ output "instructions" {
   description = "Instructions for retrieving credentials and accessing Langfuse"
   value       = <<-EOT
     ================================================================================
-    Langfuse Observability Platform
+    Langfuse
     ================================================================================
 
     Access Points:

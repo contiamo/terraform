@@ -1,6 +1,6 @@
 global:
   security:
-    allowInsecureImages: true # Required for Bitnami legacy images
+    allowInsecureImages: true # This is needed because we have to use Bitnami's legacy images. For example: docker.io/bitnamilegacy/minio:2024.12.18-debian-12-r1
 
 postgresql:
   deploy: true
