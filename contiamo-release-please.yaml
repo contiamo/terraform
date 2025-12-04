@@ -121,6 +121,9 @@ extra-files:
   - type: generic
     path: datahub/README.md
     use-prefix: "v"
+  - type: generic
+    path: langfuse/README.md
+    use-prefix: "v"
   # YAML file example (e.g., Helm charts, Kubernetes manifests):
   # - type: yaml
   #   path: charts/myapp/Chart.yaml

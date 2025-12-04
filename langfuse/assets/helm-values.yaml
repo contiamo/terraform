@@ -1,0 +1,223 @@
+global:
+  security:
+    allowInsecureImages: true # Required for Bitnami legacy images
+
+postgresql:
+  deploy: true
+  image:
+    repository: bitnamilegacy/postgresql
+  primary:
+    persistence:
+      size: 10Gi
+      storageClass: "default"
+  auth:
+    username: langfuse
+    existingSecret: langfuse-admin
+    secretKeys:
+      userPasswordKey: postgres-password
+
+clickhouse:
+  image:
+    repository: bitnamilegacy/clickhouse
+  replicaCount: 3
+  persistence:
+    size: ${CLICKHOUSE_VOLUME_SIZE}
+    storageClass: "default"
+  extraOverrides: |
+    <yandex>
+      <trace_log remove="1"/>
+      <text_log remove="1"/>
+      <opentelemetry_span_log remove="1"/>
+      <query_log remove="1"/>
+      <processors_profile_log remove="1"/>
+      <metric_log remove="1"/>
+      <part_log remove="1"/>
+      <asynchronous_metric_log remove="1"/>
+      <query_views_log remove="1"/>
+      <asynchronous_insert_log remove="1"/>
+      <latency_log remove="1"/>
+      <query_metric_log remove="1"/>
+      <error_log remove="1"/>
+    </yandex>
+  zookeeper:
+    image:
+      repository: bitnamilegacy/zookeeper
+    persistence:
+      storageClass: "default"
+    replicaCount: 3
+    customLivenessProbe:
+      tcpSocket:
+        port: 2181
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+      successThreshold: 1
+    customReadinessProbe:
+      tcpSocket:
+        port: 2181
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 6
+      successThreshold: 1
+    resources:
+      limits:
+        cpu: 375m
+        memory: 768Mi
+        ephemeral-storage: 2Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+        ephemeral-storage: 50Mi
+  resources:
+    limits:
+      cpu: "300m"
+      memory: "2Gi"
+    requests:
+      cpu: "300m"
+      memory: "2Gi"
+  auth:
+    username: langfuse
+    existingSecret: langfuse-admin
+    existingSecretKey: clickhouse-password
+  keeper:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "2Gi"
+      requests:
+        cpu: "500m"
+        memory: "2Gi"
+
+redis:
+  deploy: true
+  image:
+    repository: bitnamilegacy/valkey
+  architecture: standalone
+  primary:
+    persistence:
+      size: 10Gi
+      storageClass: "default"
+    resources:
+      limits:
+        cpu: "250m"
+        memory: "512Mi"
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+    extraFlags:
+      - "--maxmemory-policy noeviction"
+  auth:
+    existingSecret: langfuse-admin
+    existingSecretPasswordKey: valkey-password
+
+s3:
+  deploy: true
+  image:
+    repository: bitnamilegacy/minio
+  bucket: "langfuse"
+  region: "auto"
+  endpoint: "http://langfuse-s3:9000"
+  forcePathStyle: true
+  accessKeyId:
+    secretKeyRef:
+      name: "langfuse-admin"
+      key: "minio-root-user"
+  secretAccessKey:
+    secretKeyRef:
+      name: "langfuse-admin"
+      key: "minio-root-password"
+  eventUpload:
+    enabled: true
+  persistence:
+    size: ${S3_VOLUME_SIZE}
+    storageClass: "default"
+  resources:
+    limits:
+      cpu: "250m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+  auth:
+    rootUser: minio
+    existingSecret: langfuse-admin
+    rootUserSecretKey: minio-root-user
+    rootPasswordSecretKey: minio-root-password
+
+langfuse:
+  salt:
+    secretKeyRef:
+      name: langfuse-admin
+      key: salt
+  web:
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+    livenessProbe:
+      initialDelaySeconds: 80
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+    readinessProbe:
+      initialDelaySeconds: 80
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+  nextauth:
+    url: https://${LANGFUSE_HOST}
+    secret:
+      secretKeyRef:
+        name: langfuse-admin
+        key: nextauth-secret
+  features:
+    signUpDisabled: true
+  additionalEnv:
+    - name: LANGFUSE_INIT_ORG_ID
+      value: ${ORG_ID}
+    - name: LANGFUSE_INIT_ORG_NAME
+      value: "${ORG_NAME}"
+    - name: LANGFUSE_INIT_PROJECT_ID
+      value: ${PROJECT_ID}
+    - name: LANGFUSE_INIT_PROJECT_NAME
+      value: "${PROJECT_NAME}"
+    - name: LANGFUSE_INIT_USER_EMAIL
+      valueFrom:
+        secretKeyRef:
+          name: langfuse-admin
+          key: admin-email
+    - name: LANGFUSE_INIT_USER_NAME
+      value: "Admin"
+    - name: LANGFUSE_INIT_USER_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: langfuse-admin
+          key: admin-password
+    - name: LANGFUSE_INIT_PROJECT_SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: langfuse-admin
+          key: LANGFUSE_INIT_PROJECT_SECRET_KEY
+    - name: LANGFUSE_INIT_PROJECT_PUBLIC_KEY
+      valueFrom:
+        secretKeyRef:
+          name: langfuse-admin
+          key: LANGFUSE_INIT_PROJECT_PUBLIC_KEY
+  ingress:
+    enabled: true
+    className: ${INGRESS_CLASS_NAME}
+    annotations:
+      cert-manager.io/cluster-issuer: ${CERT_MANAGER_CLUSTER_ISSUER}
+    hosts:
+      - host: ${LANGFUSE_HOST}
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls:
+      enabled: true
+      secretName: langfuse-tls
