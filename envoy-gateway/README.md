@@ -1,146 +1,137 @@
 # Envoy Gateway Terraform Module
 
-This module deploys [Envoy Gateway](https://gateway.envoyproxy.io/) on Kubernetes with support for both public and internal (Tailscale) gateways using the Kubernetes Gateway API.
-
-## Overview
-
-This module creates and manages:
-
-- Envoy Gateway Helm release
-- GatewayClass resources for public and/or internal traffic
-- EnvoyProxy configurations with LoadBalancer services
-- Gateway resources with HTTP/HTTPS listeners
-- HTTPRoute resources for automatic HTTPS redirect
-
-## Requirements
-
-| Name      | Version  |
-| --------- | -------- |
-| terraform | >= 1.3.0 |
-| helm      | >= 2.0   |
-| kubectl   | >= 1.14  |
+Deploys [Envoy Gateway](https://gateway.envoyproxy.io/) on Kubernetes with support for multiple gateways using the Kubernetes Gateway API.
 
 ## Usage
 
-### Basic Example (Public Gateway Only)
+### Basic Example (Single Public Gateway)
 
 ```hcl
 module "envoy_gateway" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.9.0"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.10.0"
 
-  public_gateway_enabled  = true
-  internal_gateway_enabled = false
-
-  public_domains = ["*.gw.example.com"]
-  public_lb_annotations = {
-    "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
-  }
-
-  # Required but unused when internal gateway is disabled
-  internal_domains        = []
-  internal_lb_annotations = {}
+  gateways = [{
+    name = "envoy-public"
+    listeners = [
+      { domain = "*.example.com", name = "0" }
+    ]
+    lb_annotations = {
+      "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internet-facing"
+    }
+  }]
 }
 ```
 
-### Complete Example (Public + Internal Gateways)
+### Multiple Gateways (Public + Internal)
 
 ```hcl
 module "envoy_gateway" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.9.0"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.10.0"
 
-  chart_version = "v1.5.5"
-  namespace     = "envoy-gateway-system"
-  replicas      = 2
+  chart_version               = "v1.5.5"
+  replicas                    = 2
+  cert_manager_cluster_issuer = "letsencrypt-production"
 
-  # Public Gateway
-  public_gateway_enabled = true
-  public_gateway_name    = "envoy-public"
-  public_domains         = ["*.gw.example.com"]
-  public_lb_annotations = {
-    "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
-    "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
-  }
-
-  # Internal Gateway (Tailscale)
-  internal_gateway_enabled = true
-  internal_gateway_name    = "envoy-tailscale"
-  internal_domains         = ["*.ts.example.com"]
-  internal_lb_annotations = {
-    "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internal"
-    "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "ip"
-  }
-
-  cert_manager_cluster_issuer = "letsencrypt-production-route53"
+  gateways = [
+    {
+      name            = "envoy-public"
+      envoyproxy_name = "envoy-proxy-public"  # Custom name for migration
+      listeners = [
+        { domain = "*.ctmo.io", name = "ctmo" },
+        { domain = "*.contiamo.com", name = "contiamo" }
+      ]
+      tls_secret_suffix = "-{idx}-tls-auto-generated"
+      lb_annotations = {
+        "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
+        "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
+        "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+      }
+    },
+    {
+      name            = "envoy-tailscale"
+      envoyproxy_name = "envoy-proxy-tailscale"
+      listeners = [
+        { domain = "*.ctmo.io", name = "ctmo" },
+        { domain = "*.contiamo.com", name = "contiamo" }
+      ]
+      tls_secret_suffix = "-{idx}-tls-auto-generated"
+      lb_annotations = {
+        "service.beta.kubernetes.io/aws-load-balancer-scheme" = "internal"
+      }
+    }
+  ]
 }
 ```
 
-### OTC Example (Public Only)
+### OTC Example
 
 ```hcl
 module "envoy_gateway" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.9.0"
-  # contiamo-release-please-bump-end
-
-  public_gateway_enabled   = true
-  internal_gateway_enabled = false
-
-  public_domains = ["*.gw.otc.example.com"]
-  public_lb_annotations = {
-    "kubernetes.io/elb.class"             = "union"
-    "kubernetes.io/elb.autocreate"        = jsonencode({
-      type                  = "public"
-      bandwidth_name        = "envoy-public-bandwidth"
-      bandwidth_chargemode  = "traffic"
-      bandwidth_size        = 300
-      bandwidth_sharetype   = "PER"
-      eip_type              = "5_bgp"
-    })
-  }
-
-  internal_domains        = []
-  internal_lb_annotations = {}
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.10.0"
 
   cert_manager_cluster_issuer = "letsencrypt-production-dns01"
+
+  gateways = [{
+    name = "envoy-public"
+    listeners = [
+      { domain = "*.gw.otc.example.com", name = "0" }
+    ]
+    lb_annotations = {
+      "kubernetes.io/elb.class" = "union"
+      "kubernetes.io/elb.autocreate" = jsonencode({
+        type                 = "public"
+        bandwidth_name       = "envoy-gateway-public-bandwidth"
+        bandwidth_chargemode = "traffic"
+        bandwidth_size       = 300
+        bandwidth_sharetype  = "PER"
+        eip_type             = "5_bgp"
+      })
+    }
+  }]
 }
 ```
 
 ## Inputs
 
-| Name                        | Description                                                | Type           | Default                          | Required |
-| --------------------------- | ---------------------------------------------------------- | -------------- | -------------------------------- | :------: |
-| chart_version               | Envoy Gateway Helm chart version                           | `string`       | `"v1.5.5"`                       |    no    |
-| namespace                   | Kubernetes namespace for Envoy Gateway                     | `string`       | `"envoy-gateway-system"`         |    no    |
-| replicas                    | Number of Envoy proxy replicas                             | `number`       | `2`                              |    no    |
-| public_gateway_enabled      | Enable public gateway                                      | `bool`         | `true`                           |    no    |
-| public_gateway_name         | Name for the public gateway resources                      | `string`       | `"envoy-public"`                 |    no    |
-| public_domains              | List of domains for the public gateway                     | `list(string)` | n/a                              |   yes    |
-| public_lb_annotations       | Annotations for the public load balancer service           | `map(string)`  | n/a                              |   yes    |
-| internal_gateway_enabled    | Enable internal/tailscale gateway                          | `bool`         | `true`                           |    no    |
-| internal_gateway_name       | Name for the internal gateway resources                    | `string`       | `"envoy-tailscale"`              |    no    |
-| internal_domains            | List of domains for the internal gateway                   | `list(string)` | n/a                              |   yes    |
-| internal_lb_annotations     | Annotations for the internal load balancer service         | `map(string)`  | n/a                              |   yes    |
-| cert_manager_cluster_issuer | The cert-manager ClusterIssuer name for TLS certificates   | `string`       | `"letsencrypt-production-route53"` |    no    |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| chart_version | Envoy Gateway Helm chart version | `string` | `"v1.5.5"` | no |
+| namespace | Kubernetes namespace | `string` | `"envoy-gateway-system"` | no |
+| replicas | Number of Envoy proxy replicas | `number` | `2` | no |
+| cert_manager_cluster_issuer | Default cert-manager ClusterIssuer | `string` | `"letsencrypt-production-route53"` | no |
+| gateways | List of gateway configurations | `list(object)` | n/a | yes |
+
+### Gateway Object
+
+| Field | Description | Type | Default |
+|-------|-------------|------|---------|
+| name | Gateway name | `string` | required |
+| enabled | Whether to create this gateway | `bool` | `true` |
+| envoyproxy_name | Custom EnvoyProxy resource name | `string` | `"{name}-proxy"` |
+| listeners | List of listener configs | `list(object)` | required |
+| lb_annotations | LoadBalancer annotations | `map(string)` | required |
+| tls_secret_suffix | TLS secret suffix pattern | `string` | `"-tls-{idx}"` |
+| cert_manager_issuer | Override default issuer | `string` | null |
+
+### Listener Object
+
+| Field | Description |
+|-------|-------------|
+| domain | Domain pattern (e.g., `"*.example.com"`) |
+| name | Listener name suffix (creates `http-{name}` and `https-{name}`) |
 
 ## Outputs
 
-| Name                   | Description                                              |
-| ---------------------- | -------------------------------------------------------- |
-| namespace              | The namespace where Envoy Gateway is deployed            |
-| public_gateway_name    | The name of the public gateway                           |
-| internal_gateway_name  | The name of the internal gateway                         |
-| public_gateway_class   | The name of the public GatewayClass                      |
-| internal_gateway_class | The name of the internal GatewayClass                    |
-| public_service_name    | The Kubernetes service name for the public gateway       |
-| internal_service_name  | The Kubernetes service name for the internal gateway     |
+| Name | Description |
+|------|-------------|
+| namespace | Namespace where Envoy Gateway is deployed |
+| gateways | Map of gateway configurations with service names |
+| gateway_names | List of enabled gateway names |
+| service_names | Map of gateway names to K8s service names |
 
 ## Creating HTTPRoutes
 
-After deploying the gateway, create HTTPRoutes in your application namespaces to route traffic:
+Route traffic to your services:
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -152,26 +143,11 @@ spec:
   parentRefs:
     - name: envoy-public
       namespace: envoy-gateway-system
-      sectionName: https-0
+      sectionName: https-ctmo  # or https-0 for numeric names
   hostnames:
-    - "my-app.gw.example.com"
+    - "my-app.ctmo.io"
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
+    - backendRefs:
         - name: my-app-service
           port: 80
 ```
-
-## Notes
-
-- The module automatically creates HTTPS redirect routes for all HTTP listeners
-- TLS certificates are managed by cert-manager using the specified ClusterIssuer
-- Gateway service names follow the pattern: `envoy-{namespace}-{gateway-name}`
-- When using internal gateways with Tailscale, ensure your Tailscale operator is configured
-
-## License
-
-This module is maintained by Contiamo.
