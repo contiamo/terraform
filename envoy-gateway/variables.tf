@@ -25,16 +25,16 @@ variable "cert_manager_cluster_issuer" {
 variable "gateways" {
   description = "List of gateway configurations. Each gateway creates a GatewayClass, EnvoyProxy, Gateway, and HTTPRoute."
   type = list(object({
-    name            = string                # Gateway name (e.g., "envoy-public")
-    enabled         = optional(bool, true)  # Whether to create this gateway
-    envoyproxy_name = optional(string)      # Custom EnvoyProxy name (defaults to "{name}-proxy")
+    name            = string               # Gateway name (e.g., "envoy-public")
+    enabled         = optional(bool, true) # Whether to create this gateway
+    envoyproxy_name = optional(string)     # Custom EnvoyProxy name (defaults to "{name}-proxy")
     listeners = list(object({
       domain = string # Domain pattern (e.g., "*.ctmo.io")
       name   = string # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
     }))
-    lb_annotations      = map(string)           # LoadBalancer service annotations
-    tls_secret_suffix   = optional(string)      # TLS secret suffix pattern (default: "-tls-{idx}")
-    cert_manager_issuer = optional(string)      # Override default cert-manager issuer
+    lb_annotations      = map(string)      # LoadBalancer service annotations
+    tls_secret_suffix   = optional(string) # TLS secret suffix pattern (default: "-tls-{idx}")
+    cert_manager_issuer = optional(string) # Override default cert-manager issuer
   }))
 
   validation {
