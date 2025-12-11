@@ -11,6 +11,46 @@ terraform {
   }
 }
 
+# Local variables for naming and listener configuration
+locals {
+  # EnvoyProxy names - use custom name if provided, otherwise default pattern
+  public_envoyproxy_name   = var.public_envoyproxy_name != null ? var.public_envoyproxy_name : "${var.public_gateway_name}-proxy"
+  internal_envoyproxy_name = var.internal_envoyproxy_name != null ? var.internal_envoyproxy_name : "${var.internal_gateway_name}-proxy"
+
+  # Listener configurations - use custom listeners if provided, otherwise build from domains
+  public_listener_configs = var.public_listeners != null ? var.public_listeners : [
+    for idx, domain in var.public_domains : {
+      domain = domain
+      name   = tostring(idx)
+    }
+  ]
+
+  internal_listener_configs = var.internal_listeners != null ? var.internal_listeners : [
+    for idx, domain in var.internal_domains : {
+      domain = domain
+      name   = tostring(idx)
+    }
+  ]
+
+  # Helper function to generate TLS secret name
+  # Pattern can include {domain} or {idx} placeholders
+  public_tls_secrets = {
+    for idx, listener in local.public_listener_configs :
+    listener.name => replace(replace(
+      "${var.public_gateway_name}${var.public_tls_secret_suffix}",
+      "{domain}", replace(replace(listener.domain, "*.", ""), ".", "-")
+    ), "{idx}", listener.name)
+  }
+
+  internal_tls_secrets = {
+    for idx, listener in local.internal_listener_configs :
+    listener.name => replace(replace(
+      "${var.internal_gateway_name}${var.internal_tls_secret_suffix}",
+      "{domain}", replace(replace(listener.domain, "*.", ""), ".", "-")
+    ), "{idx}", listener.name)
+  }
+}
+
 # Deploy Envoy Gateway Helm chart
 resource "helm_release" "envoy_gateway" {
   name             = "eg"
@@ -39,7 +79,7 @@ resource "kubectl_manifest" "gatewayclass_public" {
       parametersRef = {
         group     = "gateway.envoyproxy.io"
         kind      = "EnvoyProxy"
-        name      = "${var.public_gateway_name}-proxy"
+        name      = local.public_envoyproxy_name
         namespace = var.namespace
       }
     }
@@ -62,7 +102,7 @@ resource "kubectl_manifest" "gatewayclass_internal" {
       parametersRef = {
         group     = "gateway.envoyproxy.io"
         kind      = "EnvoyProxy"
-        name      = "${var.internal_gateway_name}-proxy"
+        name      = local.internal_envoyproxy_name
         namespace = var.namespace
       }
     }
@@ -78,7 +118,7 @@ resource "kubectl_manifest" "envoyproxy_public" {
     apiVersion = "gateway.envoyproxy.io/v1alpha1"
     kind       = "EnvoyProxy"
     metadata = {
-      name      = "${var.public_gateway_name}-proxy"
+      name      = local.public_envoyproxy_name
       namespace = var.namespace
     }
     spec = {
@@ -107,7 +147,7 @@ resource "kubectl_manifest" "envoyproxy_internal" {
     apiVersion = "gateway.envoyproxy.io/v1alpha1"
     kind       = "EnvoyProxy"
     metadata = {
-      name      = "${var.internal_gateway_name}-proxy"
+      name      = local.internal_envoyproxy_name
       namespace = var.namespace
     }
     spec = {
@@ -130,11 +170,11 @@ resource "kubectl_manifest" "envoyproxy_internal" {
 # Build listeners for public gateway
 locals {
   public_http_listeners = var.public_gateway_enabled ? [
-    for idx, domain in var.public_domains : {
-      name     = "http-${idx}"
+    for listener in local.public_listener_configs : {
+      name     = "http-${listener.name}"
       protocol = "HTTP"
       port     = 80
-      hostname = domain
+      hostname = listener.domain
       allowedRoutes = {
         namespaces = {
           from = "All"
@@ -144,16 +184,16 @@ locals {
   ] : []
 
   public_https_listeners = var.public_gateway_enabled ? [
-    for idx, domain in var.public_domains : {
-      name     = "https-${idx}"
+    for listener in local.public_listener_configs : {
+      name     = "https-${listener.name}"
       protocol = "HTTPS"
       port     = 443
-      hostname = domain
+      hostname = listener.domain
       tls = {
         mode = "Terminate"
         certificateRefs = [{
           kind = "Secret"
-          name = "${var.public_gateway_name}-tls-${idx}"
+          name = local.public_tls_secrets[listener.name]
         }]
       }
       allowedRoutes = {
@@ -165,11 +205,11 @@ locals {
   ] : []
 
   internal_http_listeners = var.internal_gateway_enabled ? [
-    for idx, domain in var.internal_domains : {
-      name     = "http-${idx}"
+    for listener in local.internal_listener_configs : {
+      name     = "http-${listener.name}"
       protocol = "HTTP"
       port     = 80
-      hostname = domain
+      hostname = listener.domain
       allowedRoutes = {
         namespaces = {
           from = "All"
@@ -179,16 +219,16 @@ locals {
   ] : []
 
   internal_https_listeners = var.internal_gateway_enabled ? [
-    for idx, domain in var.internal_domains : {
-      name     = "https-${idx}"
+    for listener in local.internal_listener_configs : {
+      name     = "https-${listener.name}"
       protocol = "HTTPS"
       port     = 443
-      hostname = domain
+      hostname = listener.domain
       tls = {
         mode = "Terminate"
         certificateRefs = [{
           kind = "Secret"
-          name = "${var.internal_gateway_name}-tls-${idx}"
+          name = local.internal_tls_secrets[listener.name]
         }]
       }
       allowedRoutes = {
@@ -264,9 +304,9 @@ resource "kubectl_manifest" "httproute_public_redirect" {
     }
     spec = {
       parentRefs = [
-        for idx, _ in var.public_domains : {
+        for listener in local.public_listener_configs : {
           name        = var.public_gateway_name
-          sectionName = "http-${idx}"
+          sectionName = "http-${listener.name}"
         }
       ]
       rules = [{
@@ -296,9 +336,9 @@ resource "kubectl_manifest" "httproute_internal_redirect" {
     }
     spec = {
       parentRefs = [
-        for idx, _ in var.internal_domains : {
+        for listener in local.internal_listener_configs : {
           name        = var.internal_gateway_name
-          sectionName = "http-${idx}"
+          sectionName = "http-${listener.name}"
         }
       ]
       rules = [{
