@@ -11,7 +11,7 @@ module "tailscale" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//tailscale"
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//tailscale?ref=v0.8.1"
+  source = "github.com/contiamo/terraform//tailscale?ref=v0.9.0"
   # contiamo-release-please-bump-end
   tailscale_auth_key = var.tailscale_auth_key
   create_tailscale_auth_key_secret = var.create_tailscale_auth_key_secret

@@ -34,7 +34,7 @@ module "langfuse" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//langfuse"
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//langfuse?ref=v0.8.1"
+  source = "github.com/contiamo/terraform//langfuse?ref=v0.9.0"
   # contiamo-release-please-bump-end
 
   langfuse_host          = "langfuse.example.com"
@@ -64,7 +64,7 @@ output "langfuse_access" {
 # Deploy Langfuse
 module "langfuse" {
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//langfuse?ref=v0.8.1"
+  source = "github.com/contiamo/terraform//langfuse?ref=v0.9.0"
   # contiamo-release-please-bump-end
 
   langfuse_host          = "langfuse.mycompany.io"
