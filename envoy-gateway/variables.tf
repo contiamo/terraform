@@ -16,55 +16,29 @@ variable "replicas" {
   default     = 2
 }
 
-# Public Gateway Configuration
-variable "public_gateway_enabled" {
-  description = "Enable public gateway"
-  type        = bool
-  default     = true
-}
-
-variable "public_gateway_name" {
-  description = "Name for the public gateway resources"
-  type        = string
-  default     = "envoy-public"
-}
-
-variable "public_domains" {
-  description = "List of domains for the public gateway (e.g., ['*.example.com'])"
-  type        = list(string)
-}
-
-variable "public_lb_annotations" {
-  description = "Annotations for the public load balancer service"
-  type        = map(string)
-}
-
-# Internal/Tailscale Gateway Configuration
-variable "internal_gateway_enabled" {
-  description = "Enable internal/tailscale gateway"
-  type        = bool
-  default     = true
-}
-
-variable "internal_gateway_name" {
-  description = "Name for the internal gateway resources"
-  type        = string
-  default     = "envoy-tailscale"
-}
-
-variable "internal_domains" {
-  description = "List of domains for the internal gateway (e.g., ['*.internal.example.com'])"
-  type        = list(string)
-}
-
-variable "internal_lb_annotations" {
-  description = "Annotations for the internal load balancer service"
-  type        = map(string)
-}
-
-# Certificate Manager
 variable "cert_manager_cluster_issuer" {
-  description = "The cert-manager ClusterIssuer name for TLS certificates"
+  description = "Default cert-manager ClusterIssuer name for TLS certificates (can be overridden per gateway)"
   type        = string
   default     = "letsencrypt-production-route53"
+}
+
+variable "gateways" {
+  description = "List of gateway configurations. Each gateway creates a GatewayClass, EnvoyProxy, Gateway, and HTTPRoute."
+  type = list(object({
+    name            = string               # Gateway name (e.g., "envoy-public")
+    enabled         = optional(bool, true) # Whether to create this gateway
+    envoyproxy_name = optional(string)     # Custom EnvoyProxy name (defaults to "{name}-proxy")
+    listeners = list(object({
+      domain = string # Domain pattern (e.g., "*.ctmo.io")
+      name   = string # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
+    }))
+    lb_annotations      = map(string)      # LoadBalancer service annotations
+    tls_secret_suffix   = optional(string) # TLS secret suffix pattern (default: "-tls-{idx}")
+    cert_manager_issuer = optional(string) # Override default cert-manager issuer
+  }))
+
+  validation {
+    condition     = length(var.gateways) > 0
+    error_message = "At least one gateway must be configured."
+  }
 }

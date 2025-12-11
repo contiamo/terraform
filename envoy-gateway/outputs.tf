@@ -3,33 +3,28 @@ output "namespace" {
   value       = var.namespace
 }
 
-output "public_gateway_name" {
-  description = "The name of the public gateway"
-  value       = var.public_gateway_enabled ? var.public_gateway_name : null
+output "gateways" {
+  description = "Map of gateway configurations with their service names"
+  value = {
+    for name, gw in local.enabled_gateways : name => {
+      name            = name
+      gateway_class   = name
+      envoyproxy_name = coalesce(gw.envoyproxy_name, "${name}-proxy")
+      service_name    = "envoy-${var.namespace}-${name}"
+      listeners       = gw.listeners
+    }
+  }
 }
 
-output "internal_gateway_name" {
-  description = "The name of the internal gateway"
-  value       = var.internal_gateway_enabled ? var.internal_gateway_name : null
+# Convenience outputs for common use cases
+output "gateway_names" {
+  description = "List of enabled gateway names"
+  value       = keys(local.enabled_gateways)
 }
 
-output "public_gateway_class" {
-  description = "The name of the public GatewayClass"
-  value       = var.public_gateway_enabled ? var.public_gateway_name : null
-}
-
-output "internal_gateway_class" {
-  description = "The name of the internal GatewayClass"
-  value       = var.internal_gateway_enabled ? var.internal_gateway_name : null
-}
-
-# Service names for DNS record creation
-output "public_service_name" {
-  description = "The Kubernetes service name for the public gateway (for DNS records)"
-  value       = var.public_gateway_enabled ? "envoy-${var.namespace}-${var.public_gateway_name}" : null
-}
-
-output "internal_service_name" {
-  description = "The Kubernetes service name for the internal gateway (for DNS records)"
-  value       = var.internal_gateway_enabled ? "envoy-${var.namespace}-${var.internal_gateway_name}" : null
+output "service_names" {
+  description = "Map of gateway names to their Kubernetes service names (for DNS records)"
+  value = {
+    for name, _ in local.enabled_gateways : name => "envoy-${var.namespace}-${name}"
+  }
 }

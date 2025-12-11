@@ -11,7 +11,24 @@ terraform {
   }
 }
 
-# Deploy Envoy Gateway Helm chart
+# Build a map of enabled gateways for use with for_each
+locals {
+  enabled_gateways = {
+    for gw in var.gateways : gw.name => gw if gw.enabled
+  }
+
+  # Generate TLS secret names for each gateway's listeners
+  gateway_tls_secrets = {
+    for gw_name, gw in local.enabled_gateways : gw_name => {
+      for listener in gw.listeners : listener.name => replace(
+        "${gw.name}${coalesce(gw.tls_secret_suffix, "-tls-{idx}")}",
+        "{idx}", listener.name
+      )
+    }
+  }
+}
+
+# Deploy Envoy Gateway Helm chart (single instance)
 resource "helm_release" "envoy_gateway" {
   name             = "eg"
   repository       = "oci://registry-1.docker.io/envoyproxy"
@@ -23,62 +40,39 @@ resource "helm_release" "envoy_gateway" {
   timeout          = 600
 }
 
-# GatewayClass for public traffic
-resource "kubectl_manifest" "gatewayclass_public" {
-  count      = var.public_gateway_enabled ? 1 : 0
+# GatewayClass for each gateway
+resource "kubectl_manifest" "gatewayclass" {
+  for_each   = local.enabled_gateways
   depends_on = [helm_release.envoy_gateway]
 
   yaml_body = yamlencode({
     apiVersion = "gateway.networking.k8s.io/v1"
     kind       = "GatewayClass"
     metadata = {
-      name = var.public_gateway_name
+      name = each.key
     }
     spec = {
       controllerName = "gateway.envoyproxy.io/gatewayclass-controller"
       parametersRef = {
         group     = "gateway.envoyproxy.io"
         kind      = "EnvoyProxy"
-        name      = "${var.public_gateway_name}-proxy"
+        name      = coalesce(each.value.envoyproxy_name, "${each.key}-proxy")
         namespace = var.namespace
       }
     }
   })
 }
 
-# GatewayClass for internal traffic
-resource "kubectl_manifest" "gatewayclass_internal" {
-  count      = var.internal_gateway_enabled ? 1 : 0
-  depends_on = [helm_release.envoy_gateway]
-
-  yaml_body = yamlencode({
-    apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "GatewayClass"
-    metadata = {
-      name = var.internal_gateway_name
-    }
-    spec = {
-      controllerName = "gateway.envoyproxy.io/gatewayclass-controller"
-      parametersRef = {
-        group     = "gateway.envoyproxy.io"
-        kind      = "EnvoyProxy"
-        name      = "${var.internal_gateway_name}-proxy"
-        namespace = var.namespace
-      }
-    }
-  })
-}
-
-# EnvoyProxy for public traffic
-resource "kubectl_manifest" "envoyproxy_public" {
-  count      = var.public_gateway_enabled ? 1 : 0
+# EnvoyProxy for each gateway
+resource "kubectl_manifest" "envoyproxy" {
+  for_each   = local.enabled_gateways
   depends_on = [helm_release.envoy_gateway]
 
   yaml_body = yamlencode({
     apiVersion = "gateway.envoyproxy.io/v1alpha1"
     kind       = "EnvoyProxy"
     metadata = {
-      name      = "${var.public_gateway_name}-proxy"
+      name      = coalesce(each.value.envoyproxy_name, "${each.key}-proxy")
       namespace = var.namespace
     }
     spec = {
@@ -90,7 +84,7 @@ resource "kubectl_manifest" "envoyproxy_public" {
           }
           envoyService = {
             type        = "LoadBalancer"
-            annotations = var.public_lb_annotations
+            annotations = each.value.lb_annotations
           }
         }
       }
@@ -98,207 +92,80 @@ resource "kubectl_manifest" "envoyproxy_public" {
   })
 }
 
-# EnvoyProxy for internal traffic
-resource "kubectl_manifest" "envoyproxy_internal" {
-  count      = var.internal_gateway_enabled ? 1 : 0
-  depends_on = [helm_release.envoy_gateway]
-
-  yaml_body = yamlencode({
-    apiVersion = "gateway.envoyproxy.io/v1alpha1"
-    kind       = "EnvoyProxy"
-    metadata = {
-      name      = "${var.internal_gateway_name}-proxy"
-      namespace = var.namespace
-    }
-    spec = {
-      provider = {
-        type = "Kubernetes"
-        kubernetes = {
-          envoyDeployment = {
-            replicas = var.replicas
-          }
-          envoyService = {
-            type        = "LoadBalancer"
-            annotations = var.internal_lb_annotations
-          }
-        }
-      }
-    }
-  })
-}
-
-# Build listeners for public gateway
-locals {
-  public_http_listeners = var.public_gateway_enabled ? [
-    for idx, domain in var.public_domains : {
-      name     = "http-${idx}"
-      protocol = "HTTP"
-      port     = 80
-      hostname = domain
-      allowedRoutes = {
-        namespaces = {
-          from = "All"
-        }
-      }
-    }
-  ] : []
-
-  public_https_listeners = var.public_gateway_enabled ? [
-    for idx, domain in var.public_domains : {
-      name     = "https-${idx}"
-      protocol = "HTTPS"
-      port     = 443
-      hostname = domain
-      tls = {
-        mode = "Terminate"
-        certificateRefs = [{
-          kind = "Secret"
-          name = "${var.public_gateway_name}-tls-${idx}"
-        }]
-      }
-      allowedRoutes = {
-        namespaces = {
-          from = "All"
-        }
-      }
-    }
-  ] : []
-
-  internal_http_listeners = var.internal_gateway_enabled ? [
-    for idx, domain in var.internal_domains : {
-      name     = "http-${idx}"
-      protocol = "HTTP"
-      port     = 80
-      hostname = domain
-      allowedRoutes = {
-        namespaces = {
-          from = "All"
-        }
-      }
-    }
-  ] : []
-
-  internal_https_listeners = var.internal_gateway_enabled ? [
-    for idx, domain in var.internal_domains : {
-      name     = "https-${idx}"
-      protocol = "HTTPS"
-      port     = 443
-      hostname = domain
-      tls = {
-        mode = "Terminate"
-        certificateRefs = [{
-          kind = "Secret"
-          name = "${var.internal_gateway_name}-tls-${idx}"
-        }]
-      }
-      allowedRoutes = {
-        namespaces = {
-          from = "All"
-        }
-      }
-    }
-  ] : []
-}
-
-# Gateway for public traffic
-resource "kubectl_manifest" "gateway_public" {
-  count = var.public_gateway_enabled ? 1 : 0
+# Gateway for each gateway configuration
+resource "kubectl_manifest" "gateway" {
+  for_each = local.enabled_gateways
   depends_on = [
-    kubectl_manifest.gatewayclass_public,
-    kubectl_manifest.envoyproxy_public
+    kubectl_manifest.gatewayclass,
+    kubectl_manifest.envoyproxy
   ]
 
   yaml_body = yamlencode({
     apiVersion = "gateway.networking.k8s.io/v1"
     kind       = "Gateway"
     metadata = {
-      name      = var.public_gateway_name
+      name      = each.key
       namespace = var.namespace
       annotations = {
-        "cert-manager.io/cluster-issuer" = var.cert_manager_cluster_issuer
+        "cert-manager.io/cluster-issuer" = coalesce(each.value.cert_manager_issuer, var.cert_manager_cluster_issuer)
       }
     }
     spec = {
-      gatewayClassName = var.public_gateway_name
-      listeners        = concat(local.public_http_listeners, local.public_https_listeners)
-    }
-  })
-}
-
-# Gateway for internal traffic
-resource "kubectl_manifest" "gateway_internal" {
-  count = var.internal_gateway_enabled ? 1 : 0
-  depends_on = [
-    kubectl_manifest.gatewayclass_internal,
-    kubectl_manifest.envoyproxy_internal
-  ]
-
-  yaml_body = yamlencode({
-    apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "Gateway"
-    metadata = {
-      name      = var.internal_gateway_name
-      namespace = var.namespace
-      annotations = {
-        "cert-manager.io/cluster-issuer" = var.cert_manager_cluster_issuer
-      }
-    }
-    spec = {
-      gatewayClassName = var.internal_gateway_name
-      listeners        = concat(local.internal_http_listeners, local.internal_https_listeners)
-    }
-  })
-}
-
-# HTTPRoute for public HTTPS redirect
-resource "kubectl_manifest" "httproute_public_redirect" {
-  count      = var.public_gateway_enabled ? 1 : 0
-  depends_on = [kubectl_manifest.gateway_public]
-
-  yaml_body = yamlencode({
-    apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "HTTPRoute"
-    metadata = {
-      name      = "${var.public_gateway_name}-https-redirect"
-      namespace = var.namespace
-    }
-    spec = {
-      parentRefs = [
-        for idx, _ in var.public_domains : {
-          name        = var.public_gateway_name
-          sectionName = "http-${idx}"
-        }
-      ]
-      rules = [{
-        filters = [{
-          type = "RequestRedirect"
-          requestRedirect = {
-            scheme     = "https"
-            statusCode = 301
+      gatewayClassName = each.key
+      listeners = concat(
+        # HTTP listeners
+        [
+          for listener in each.value.listeners : {
+            name     = "http-${listener.name}"
+            protocol = "HTTP"
+            port     = 80
+            hostname = listener.domain
+            allowedRoutes = {
+              namespaces = { from = "All" }
+            }
           }
-        }]
-      }]
+        ],
+        # HTTPS listeners
+        [
+          for listener in each.value.listeners : {
+            name     = "https-${listener.name}"
+            protocol = "HTTPS"
+            port     = 443
+            hostname = listener.domain
+            tls = {
+              mode = "Terminate"
+              certificateRefs = [{
+                kind = "Secret"
+                name = local.gateway_tls_secrets[each.key][listener.name]
+              }]
+            }
+            allowedRoutes = {
+              namespaces = { from = "All" }
+            }
+          }
+        ]
+      )
     }
   })
 }
 
-# HTTPRoute for internal HTTPS redirect
-resource "kubectl_manifest" "httproute_internal_redirect" {
-  count      = var.internal_gateway_enabled ? 1 : 0
-  depends_on = [kubectl_manifest.gateway_internal]
+# HTTPRoute for HTTPS redirect for each gateway
+resource "kubectl_manifest" "httproute_redirect" {
+  for_each   = local.enabled_gateways
+  depends_on = [kubectl_manifest.gateway]
 
   yaml_body = yamlencode({
     apiVersion = "gateway.networking.k8s.io/v1"
     kind       = "HTTPRoute"
     metadata = {
-      name      = "${var.internal_gateway_name}-https-redirect"
+      name      = "${each.key}-https-redirect"
       namespace = var.namespace
     }
     spec = {
       parentRefs = [
-        for idx, _ in var.internal_domains : {
-          name        = var.internal_gateway_name
-          sectionName = "http-${idx}"
+        for listener in each.value.listeners : {
+          name        = each.key
+          sectionName = "http-${listener.name}"
         }
       ]
       rules = [{
