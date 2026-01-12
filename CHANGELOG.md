@@ -38,6 +38,12 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.9.1] (2026-01-12)
+
+### Bug Fixes
+
+* loki pod scheduling
+
 ## [0.9.0] (2025-12-11)
 
 ### Features
