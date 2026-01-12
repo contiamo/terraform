@@ -22,3 +22,8 @@ loki:
         index:
           prefix: index_ # any value without spaces is acceptable.
           period: 24h # must be 24h.
+lokiCanary:
+  tolerations:
+    - key: "karpenter.sh/disrupted"
+      operator: "Exists"
+      effect: "NoSchedule"
