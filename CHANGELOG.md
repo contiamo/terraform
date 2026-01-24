@@ -38,6 +38,12 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.9.2] (2026-01-24)
+
+### Miscellaneous Changes
+
+* Move to alekc/kubectl provider
+
 ## [0.9.1] (2026-01-12)
 
 ### Bug Fixes
