@@ -38,6 +38,16 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.11.0] (2026-02-06)
+
+### Features
+
+* **onepassword-secret**: Add support for pre-fetched item and vault_id
+
+### Miscellaneous Changes
+
+* Release please config
+
 ## [0.10.0] (2026-01-26)
 
 ### Features
