@@ -1,5 +1,7 @@
 locals {
   loki_svc_account_name = "loki"
+  loki_values_template  = var.target_cluster == "eks" ? "${path.module}/assets/helm-values-loki.tpl" : "${path.module}/assets/helm-values-loki-non-eks.tpl"
+  loki_role_arn         = var.target_cluster == "eks" ? module.loki_service_account_role[0].arn : "na"
 }
 
 # Prep. namespace:
@@ -14,8 +16,9 @@ resource "aws_s3_bucket" "loki_storage" {
   tags   = var.aws_tags
 }
 
-# Grant Loki access to the new bucket via a dedicated role:
+# Grant Loki access to the new bucket via a dedicated role (EKS only):
 resource "aws_iam_policy" "loki_storage_policy" {
+  count       = var.target_cluster == "eks" ? 1 : 0
   name        = "loki-svc-account-policy"
   description = "Policy for Loki storage bucket"
   policy = jsonencode({
@@ -36,11 +39,12 @@ resource "aws_iam_policy" "loki_storage_policy" {
 }
 
 module "loki_service_account_role" {
+  count     = var.target_cluster == "eks" ? 1 : 0
   source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
   version   = "6.2.1"
   name = "loki-svc-account-role"
   policies = {
-    bucket = aws_iam_policy.loki_storage_policy.arn,
+    bucket = aws_iam_policy.loki_storage_policy[0].arn,
   }
   oidc_providers = {
     one = {
@@ -58,7 +62,6 @@ resource "helm_release" "loki" {
   depends_on = [
     kubernetes_namespace_v1.monitoring,
     aws_s3_bucket.loki_storage,
-    module.loki_service_account_role,
   ]
   name       = "loki"
   repository = "https://grafana.github.io/helm-charts"
@@ -66,12 +69,15 @@ resource "helm_release" "loki" {
   version    = var.loki_version
   namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
   values = [
-    templatefile("${path.module}/assets/helm-values-loki.tpl",
+    templatefile(local.loki_values_template,
       {
-        LOKI_BUCKET_AWS_REGION        = data.aws_region.current.id,
-        LOKI_STORAGE_BUCKET_NAME      = aws_s3_bucket.loki_storage.id,
-        LOKI_SVC_ACCOUNT_NAME         = local.loki_svc_account_name,
-        LOKI_SVC_ACCOUNT_IAM_ROLE_ARN = module.loki_service_account_role.arn,
+        LOKI_BUCKET_AWS_REGION                = data.aws_region.current.id,
+        LOKI_STORAGE_BUCKET_NAME              = aws_s3_bucket.loki_storage.id,
+        LOKI_STORAGE_BUCKET_SECRET_ACCESS_KEY = var.loki_storage_bucket_secret_access_key,
+        LOKI_STORAGE_BUCKET_ACCESS_KEY_ID     = var.loki_storage_bucket_access_key_id,
+        LOKI_STORAGE_CLASS_NAME               = var.loki_storage_class_name,
+        LOKI_SVC_ACCOUNT_NAME                 = local.loki_svc_account_name,
+        LOKI_SVC_ACCOUNT_IAM_ROLE_ARN         = local.loki_role_arn,
       }
     )
   ]
@@ -111,15 +117,28 @@ resource "helm_release" "monitoring" {
   values = [
     templatefile("${path.module}/assets/helm-values-monitoring.tpl",
       {
-        GRAFANA_PVC_SIZE                 = var.grafana_pvc_size,
-        GRAFANA_INGRESS_CLASS_NAME       = var.grafana_ingress_class_name,
-        CERT_MANAGER_CLUSTER_ISSUER_NAME = var.cert_manager_cluster_issuer_name,
-        GRAFANA_HOST                     = var.grafana_host,
-        GRAFANA_ADMIN_USER               = var.grafana_admin_user,
-        GRAFANA_ADMIN_PASSWORD           = var.grafana_admin_password,
-        ALERT_MANAGER_INGRESS_CLASS_NAME = var.alert_manager_ingress_class_name,
-        ALERT_MANAGER_HOST               = var.alert_manager_host,
-        ALERT_MANAGER_SLACK_WEBHOOK_URL  = var.alert_manager_slack_webhook_url,
+        GRAFANA_PVC_SIZE                                        = var.grafana_pvc_size,
+        GRAFANA_INGRESS_CLASS_NAME                              = var.grafana_ingress_class_name,
+        CERT_MANAGER_CLUSTER_ISSUER_NAME                        = var.cert_manager_cluster_issuer_name,
+        GRAFANA_HOST                                            = var.grafana_host,
+        GRAFANA_ADMIN_USER                                      = var.grafana_admin_user,
+        GRAFANA_ADMIN_PASSWORD                                  = var.grafana_admin_password,
+        GRAFANA_PLUGINS                                         = var.grafana_plugins,
+        GRAFANA_OAUTH_ENABLED                                   = var.grafana_oauth_enabled,
+        GRAFANA_OAUTH_NAME                                      = var.grafana_oauth_name,
+        GRAFANA_OAUTH_CLIENT_ID                                 = var.grafana_oauth_client_id,
+        GRAFANA_OAUTH_CLIENT_SECRET                             = var.grafana_oauth_client_secret,
+        GRAFANA_OAUTH_SCOPES                                    = var.grafana_oauth_scopes,
+        GRAFANA_OAUTH_AUTH_URL                                   = var.grafana_oauth_auth_url,
+        GRAFANA_OAUTH_TOKEN_URL                                  = var.grafana_oauth_token_url,
+        GRAFANA_OAUTH_API_URL                                    = var.grafana_oauth_api_url,
+        GRAFANA_OAUTH_ROLE_ATTRIBUTE_PATH                       = var.grafana_oauth_role_attribute_path,
+        GRAFANA_OAUTH_ROLE_ATTRIBUTE_STRICT                     = var.grafana_oauth_role_attribute_strict,
+        GRAFANA_OAUTH_USE_REFRESH_TOKEN                         = var.grafana_oauth_use_refresh_token,
+        GRAFANA_OAUTH_AUTO_LOGIN                                = var.grafana_oauth_auto_login,
+        ALERT_MANAGER_INGRESS_CLASS_NAME                        = var.alert_manager_ingress_class_name,
+        ALERT_MANAGER_HOST                                      = var.alert_manager_host,
+        ALERT_MANAGER_SLACK_WEBHOOK_URL                         = var.alert_manager_slack_webhook_url,
         ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING = var.alert_manager_slack_webhook_url_web_endpoint_monitoring,
       }
     )

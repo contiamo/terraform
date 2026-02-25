@@ -6,6 +6,32 @@ kubeDns:
 grafana:
   adminUser: ${GRAFANA_ADMIN_USER}
   adminPassword: ${GRAFANA_ADMIN_PASSWORD}
+  grafana.ini:
+    server:
+      root_url: https://${GRAFANA_HOST}
+%{ if GRAFANA_OAUTH_ENABLED ~}
+    auth.generic_oauth:
+      enabled: true
+      name: ${GRAFANA_OAUTH_NAME}
+      client_id: ${GRAFANA_OAUTH_CLIENT_ID}
+      client_secret: ${GRAFANA_OAUTH_CLIENT_SECRET}
+      scopes: ${GRAFANA_OAUTH_SCOPES}
+      auth_url: ${GRAFANA_OAUTH_AUTH_URL}
+      token_url: ${GRAFANA_OAUTH_TOKEN_URL}
+      api_url: ${GRAFANA_OAUTH_API_URL}
+%{ if GRAFANA_OAUTH_ROLE_ATTRIBUTE_PATH != "" ~}
+      role_attribute_path: ${GRAFANA_OAUTH_ROLE_ATTRIBUTE_PATH}
+%{ endif ~}
+      role_attribute_strict: ${GRAFANA_OAUTH_ROLE_ATTRIBUTE_STRICT}
+      use_refresh_token: ${GRAFANA_OAUTH_USE_REFRESH_TOKEN}
+      auto_login: ${GRAFANA_OAUTH_AUTO_LOGIN}
+%{ endif ~}
+%{ if length(GRAFANA_PLUGINS) > 0 ~}
+  plugins:
+%{ for plugin in GRAFANA_PLUGINS ~}
+    - ${plugin}
+%{ endfor ~}
+%{ endif ~}
   persistence:
     type: pvc
     enabled: false

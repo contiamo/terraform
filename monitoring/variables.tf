@@ -1,3 +1,9 @@
+variable "target_cluster" {
+  description = "Target cluster type (eks or other). Controls Loki S3 auth method: EKS uses IRSA, non-EKS uses IAM access keys."
+  type        = string
+  default     = "eks"
+}
+
 variable "target_namespace" {
   type        = string
   description = "The namespace where the monitoring stack will be deployed."
@@ -28,7 +34,28 @@ variable "aws_tags" {
 }
 variable "oidc_provider_arn" {
   type        = string
-  description = "The ARN of the OIDC provider for the EKS cluster. Will be used to define Loki service-account access to the stoarge S3 bucket."
+  description = "The ARN of the OIDC provider for the EKS cluster. Will be used to define Loki service-account access to the storage S3 bucket. Required when target_cluster = eks."
+  default     = ""
+}
+
+variable "loki_storage_bucket_secret_access_key" {
+  type        = string
+  description = "The secret access key for the S3 bucket where Loki will store logs (used for non-EKS deployments)."
+  sensitive   = true
+  default     = ""
+}
+
+variable "loki_storage_bucket_access_key_id" {
+  type        = string
+  description = "The access key ID for the S3 bucket where Loki will store logs (used for non-EKS deployments)."
+  sensitive   = true
+  default     = ""
+}
+
+variable "loki_storage_class_name" {
+  type        = string
+  description = "The storage class name for Loki PVCs (used for non-EKS deployments)."
+  default     = "gp2"
 }
 
 variable "grafana_admin_user" {
@@ -89,4 +116,85 @@ variable "blackbox_exporter" {
   description = "Whether to install the Blackbox Exporter"
   type        = bool
   default     = true
+}
+
+# Grafana plugins
+variable "grafana_plugins" {
+  description = "List of Grafana plugins to install"
+  type        = list(string)
+  default     = []
+}
+
+# Grafana OAuth/OIDC configuration
+variable "grafana_oauth_enabled" {
+  description = "Enable OAuth authentication for Grafana"
+  type        = bool
+  default     = false
+}
+
+variable "grafana_oauth_name" {
+  description = "Display name for OAuth provider (shown on login page)"
+  type        = string
+  default     = "OAuth"
+}
+
+variable "grafana_oauth_client_id" {
+  description = "OAuth client ID"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_oauth_client_secret" {
+  description = "OAuth client secret"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "grafana_oauth_scopes" {
+  description = "OAuth scopes (space-separated)"
+  type        = string
+  default     = "openid email profile"
+}
+
+variable "grafana_oauth_auth_url" {
+  description = "OAuth authorization URL"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_oauth_token_url" {
+  description = "OAuth token URL"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_oauth_api_url" {
+  description = "OAuth API/userinfo URL"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_oauth_role_attribute_path" {
+  description = "JMESPath expression to use for Grafana role lookup"
+  type        = string
+  default     = ""
+}
+
+variable "grafana_oauth_role_attribute_strict" {
+  description = "If enabled, denies user login if the Grafana role cannot be extracted using role_attribute_path"
+  type        = bool
+  default     = false
+}
+
+variable "grafana_oauth_use_refresh_token" {
+  description = "Enable refresh token usage for OAuth"
+  type        = bool
+  default     = true
+}
+
+variable "grafana_oauth_auto_login" {
+  description = "Skip Grafana login page and redirect directly to OAuth provider"
+  type        = bool
+  default     = false
 }
