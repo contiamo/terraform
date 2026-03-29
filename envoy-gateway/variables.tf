@@ -4,11 +4,6 @@ variable "chart_version" {
   default     = "v1.7.1"
 }
 
-variable "gateway_api_channel" {
-  description = "Gateway API CRD channel: 'standard' or 'experimental' (experimental includes TCPRoute, ListenerSet, etc.)"
-  type        = string
-  default     = "experimental"
-}
 
 variable "namespace" {
   description = "Kubernetes namespace for Envoy Gateway"

@@ -102,7 +102,6 @@ module "envoy_gateway" {
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | chart_version | Envoy Gateway Helm chart version | `string` | `"v1.7.1"` | no |
-| gateway_api_channel | Gateway API CRD channel (`standard` or `experimental`) | `string` | `"experimental"` | no |
 | namespace | Kubernetes namespace | `string` | `"envoy-gateway-system"` | no |
 | replicas | Number of Envoy proxy replicas | `number` | `2` | no |
 | cert_manager_cluster_issuer | Default cert-manager ClusterIssuer | `string` | `"letsencrypt-production-route53"` | no |
