@@ -8,7 +8,9 @@ Deploys [Envoy Gateway](https://gateway.envoyproxy.io/) on Kubernetes with suppo
 
 ```hcl
 module "envoy_gateway" {
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.10.0"
+  # contiamo-release-please-bump-start
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.11.0"
+  # contiamo-release-please-bump-end
 
   gateways = [{
     name = "envoy-public"
@@ -26,9 +28,11 @@ module "envoy_gateway" {
 
 ```hcl
 module "envoy_gateway" {
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.10.0"
+  # contiamo-release-please-bump-start
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.11.0"
+  # contiamo-release-please-bump-end
 
-  chart_version               = "v1.5.5"
+  chart_version               = "v1.7.1"
   replicas                    = 2
   cert_manager_cluster_issuer = "letsencrypt-production"
 
@@ -67,7 +71,9 @@ module "envoy_gateway" {
 
 ```hcl
 module "envoy_gateway" {
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.10.0"
+  # contiamo-release-please-bump-start
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.11.0"
+  # contiamo-release-please-bump-end
 
   cert_manager_cluster_issuer = "letsencrypt-production-dns01"
 
@@ -95,7 +101,8 @@ module "envoy_gateway" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| chart_version | Envoy Gateway Helm chart version | `string` | `"v1.5.5"` | no |
+| chart_version | Envoy Gateway Helm chart version | `string` | `"v1.7.1"` | no |
+| gateway_api_channel | Gateway API CRD channel (`standard` or `experimental`) | `string` | `"experimental"` | no |
 | namespace | Kubernetes namespace | `string` | `"envoy-gateway-system"` | no |
 | replicas | Number of Envoy proxy replicas | `number` | `2` | no |
 | cert_manager_cluster_issuer | Default cert-manager ClusterIssuer | `string` | `"letsencrypt-production-route53"` | no |
