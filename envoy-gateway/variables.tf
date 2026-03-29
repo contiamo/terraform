@@ -1,7 +1,13 @@
 variable "chart_version" {
   description = "Envoy Gateway Helm chart version"
   type        = string
-  default     = "v1.5.5"
+  default     = "v1.7.1"
+}
+
+variable "gateway_api_channel" {
+  description = "Gateway API CRD channel: 'standard' or 'experimental' (experimental includes TCPRoute, ListenerSet, etc.)"
+  type        = string
+  default     = "standard"
 }
 
 variable "namespace" {
