@@ -38,6 +38,19 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.13.0] (2026-03-29)
+
+### Features
+
+* add gateway-api-crds module, support external CRD management in envoy-gateway
+
+### Bug Fixes
+
+* **gateway-api-crds**: use current version in README for release-please
+* **envoy-gateway**: remove gateway-crds-helm chart entirely
+* **gateway-api-crds**: correct manifest key for ValidatingAdmissionPolicy
+* **envoy-gateway**: use helm_release for CRDs instead of helm_template
+
 ## [0.12.0] (2026-03-29)
 
 ### Features
