@@ -28,18 +28,14 @@ locals {
   }
 }
 
-# Install Gateway API and Envoy Gateway CRDs separately.
-# Helm does not update CRDs bundled in /crds on upgrade, so managing
-# them via the dedicated crds chart ensures they stay current.
-resource "helm_release" "envoy_gateway_crds" {
-  name             = "eg-crds"
-  repository       = "oci://registry-1.docker.io/envoyproxy"
-  version          = var.chart_version
-  chart            = "gateway-crds-helm"
-  namespace        = var.namespace
-  create_namespace = true
-  max_history      = 3
-  timeout          = 300
+# Render Gateway API and Envoy Gateway CRDs from the dedicated crds chart.
+# Helm does not update CRDs bundled in /crds on upgrade, so we render
+# them with helm_template and apply via server-side apply instead.
+data "helm_template" "envoy_gateway_crds" {
+  name       = "eg-crds"
+  repository = "oci://registry-1.docker.io/envoyproxy"
+  chart      = "gateway-crds-helm"
+  version    = var.chart_version
 
   set {
     name  = "crds.gatewayAPI.enabled"
@@ -57,9 +53,16 @@ resource "helm_release" "envoy_gateway_crds" {
   }
 }
 
+resource "kubectl_manifest" "envoy_gateway_crds" {
+  for_each          = data.helm_template.envoy_gateway_crds.manifests
+  yaml_body         = each.value
+  server_side_apply = true
+  force_conflicts   = true
+}
+
 # Deploy Envoy Gateway Helm chart (single instance)
 resource "helm_release" "envoy_gateway" {
-  depends_on = [helm_release.envoy_gateway_crds]
+  depends_on = [kubectl_manifest.envoy_gateway_crds]
 
   name             = "eg"
   repository       = "oci://registry-1.docker.io/envoyproxy"

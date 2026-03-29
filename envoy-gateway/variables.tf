@@ -7,7 +7,7 @@ variable "chart_version" {
 variable "gateway_api_channel" {
   description = "Gateway API CRD channel: 'standard' or 'experimental' (experimental includes TCPRoute, ListenerSet, etc.)"
   type        = string
-  default     = "standard"
+  default     = "experimental"
 }
 
 variable "namespace" {
