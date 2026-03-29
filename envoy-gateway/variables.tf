@@ -4,11 +4,6 @@ variable "chart_version" {
   default     = "v1.7.1"
 }
 
-variable "install_gateway_api_crds" {
-  description = "Install Gateway API CRDs via the Envoy crds chart. Set to false if managing Gateway API CRDs externally (e.g. via the gateway-api-crds module)."
-  type        = bool
-  default     = true
-}
 
 variable "namespace" {
   description = "Kubernetes namespace for Envoy Gateway"
