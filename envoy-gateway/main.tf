@@ -28,9 +28,12 @@ locals {
   }
 }
 
-# Install Gateway API and Envoy Gateway CRDs via the dedicated crds chart.
+# Install Envoy Gateway CRDs via the dedicated crds chart.
 # Helm does not update CRDs bundled in /crds on upgrade, so we manage
 # them separately to ensure they stay current.
+#
+# Gateway API CRDs can optionally be included (install_gateway_api_crds = true)
+# or managed externally, e.g. via the gateway-api-crds module.
 resource "helm_release" "envoy_gateway_crds" {
   name             = "eg-crds"
   repository       = "oci://registry-1.docker.io/envoyproxy"
@@ -43,12 +46,12 @@ resource "helm_release" "envoy_gateway_crds" {
 
   set {
     name  = "crds.gatewayAPI.enabled"
-    value = "true"
+    value = tostring(var.install_gateway_api_crds)
   }
 
   set {
     name  = "crds.gatewayAPI.channel"
-    value = var.gateway_api_channel
+    value = "standard"
   }
 
   set {
