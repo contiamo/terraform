@@ -38,6 +38,20 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.12.0] (2026-03-29)
+
+### Features
+
+* **envoy-gateway**: bump to v1.7.1 and manage CRDs separately
+
+### Bug Fixes
+
+* use helm_template + server-side apply for CRDs
+
+### Documentation
+
+* **envoy-gateway**: add release-please bump markers and update versions
+
 ## [0.11.0] (2026-02-06)
 
 ### Features
