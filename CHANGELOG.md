@@ -38,6 +38,17 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.13.1] (2026-03-30)
+
+### Bug Fixes
+
+* **envoy-gateway**: skip bundled CRDs to avoid conflicts with gateway-api-crds module
+
+### Miscellaneous Changes
+
+* Update gitignore
+* Add autobump for Gateway API CRDs
+
 ## [0.13.0] (2026-03-29)
 
 ### Features
