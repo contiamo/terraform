@@ -38,6 +38,7 @@ resource "helm_release" "envoy_gateway" {
   chart            = "gateway-helm"
   namespace        = var.namespace
   create_namespace = true
+  skip_crds        = true
   max_history      = 3
   timeout          = 600
 }
