@@ -2,6 +2,37 @@
 
 Deploys [Envoy Gateway](https://gateway.envoyproxy.io/) on Kubernetes with support for multiple gateways using the Kubernetes Gateway API.
 
+> ## ⚠️ Version Compatibility
+>
+> This module installs **Envoy Gateway** (the controller) **plus its
+> Envoy-Gateway-specific CRDs** (`gateway.envoyproxy.io/*`). Both are pinned
+> to `var.chart_version`.
+>
+> The **upstream Gateway API CRDs** (`gateway.networking.k8s.io/*`) are managed
+> by a separate [`gateway-api-crds`](../gateway-api-crds/) module and pinned
+> independently.
+>
+> **You are responsible for keeping these versions compatible.** Always check
+> the Envoy Gateway compatibility matrix:
+> <https://gateway.envoyproxy.io/news/releases/matrix/>
+>
+> It is OK to run with newer Gateway API CRDs than Envoy Gateway officially
+> supports — Envoy Gateway will simply ignore unknown resource types until
+> you upgrade the controller. We deliberately run Gateway API v1.5.1 with
+> Envoy Gateway v1.7.x today, awaiting Envoy Gateway v1.8.0 (which adds
+> standard `ListenerSet` support from Gateway API v1.5).
+>
+> ### Adding a new Envoy Gateway version
+>
+> The chart_version variable only accepts versions that have a corresponding
+> CRDs file under `crds/envoy-crds-<version>.yaml`. The daily
+> `update-envoy-gateway-crds` GitHub Actions workflow adds new versions
+> automatically when Envoy Gateway publishes a release. To add one manually:
+>
+> ```bash
+> ./envoy-gateway/scripts/update-envoy-crds.sh v1.8.0
+> ```
+
 ## Usage
 
 ### Basic Example (Single Public Gateway)

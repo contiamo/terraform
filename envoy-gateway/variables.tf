@@ -1,5 +1,17 @@
 variable "chart_version" {
-  description = "Envoy Gateway Helm chart version"
+  description = <<-EOT
+    Envoy Gateway Helm chart version. Drives both the controller (gateway-helm)
+    and the bundled Envoy Gateway CRDs (gateway-crds-helm). The Gateway API CRD
+    version pin is independent and managed by the gateway-api-crds module.
+
+    Must be one of the versions tracked in locals.tf
+    (chart_version_to_envoy_crds_map). New versions are added automatically by
+    the daily update-envoy-gateway-crds workflow, or manually via:
+      ./envoy-gateway/scripts/update-envoy-crds.sh <new-version>
+
+    See the Envoy Gateway compatibility matrix:
+    https://gateway.envoyproxy.io/news/releases/matrix/
+  EOT
   type        = string
   default     = "v1.7.1"
 }
