@@ -28,10 +28,59 @@ locals {
   }
 }
 
+# ----------------------------------------------------------------------------
+# Envoy Gateway CRDs (gateway.envoyproxy.io/*)
+# ----------------------------------------------------------------------------
+# We install Envoy Gateway-specific CRDs from a per-version YAML file rendered
+# from gateway-crds-helm. Same pattern as the gateway-api-crds module.
+#
+# The main gateway-helm chart (below) uses skip_crds = true so we MUST install
+# these CRDs separately or the controller will have nothing to watch.
+#
+# To add a new chart version, run scripts/update-envoy-crds.sh (or wait for
+# the daily update-envoy-gateway-crds workflow to open a PR).
+
+# Validate that the chart_version has a corresponding CRDs file. Produces a
+# clear error at plan time if someone uses an unsupported version.
+resource "terraform_data" "envoy_gateway_crds_version_check" {
+  input = var.chart_version
+
+  lifecycle {
+    precondition {
+      condition     = contains(keys(local.chart_version_to_envoy_crds_map), var.chart_version)
+      error_message = <<-EOT
+        Unsupported chart_version: "${var.chart_version}"
+
+        Supported versions: ${jsonencode(keys(local.chart_version_to_envoy_crds_map))}
+
+        To add a new version, run:
+          ./envoy-gateway/scripts/update-envoy-crds.sh <version>
+
+        Or wait for the daily update-envoy-gateway-crds workflow to open a PR.
+      EOT
+    }
+  }
+}
+
+data "kubectl_file_documents" "envoy_gateway_crds" {
+  depends_on = [terraform_data.envoy_gateway_crds_version_check]
+  content    = file("${path.module}/crds/envoy-crds-${var.chart_version}.yaml")
+}
+
+resource "kubectl_manifest" "envoy_gateway_crds" {
+  for_each          = toset(local.chart_version_to_envoy_crds_map[var.chart_version])
+  yaml_body         = data.kubectl_file_documents.envoy_gateway_crds.manifests[each.value]
+  server_side_apply = true
+  force_conflicts   = true
+  wait              = true
+}
+
 # Deploy Envoy Gateway Helm chart.
-# Gateway API CRDs should be managed externally (e.g. via the gateway-api-crds module).
-# Envoy Gateway CRDs are bundled in the chart's /crds directory.
+# Gateway API CRDs are managed externally (gateway-api-crds module).
+# Envoy Gateway CRDs are managed by kubectl_manifest.envoy_gateway_crds above.
 resource "helm_release" "envoy_gateway" {
+  depends_on = [kubectl_manifest.envoy_gateway_crds]
+
   name             = "eg"
   repository       = "oci://registry-1.docker.io/envoyproxy"
   version          = var.chart_version
