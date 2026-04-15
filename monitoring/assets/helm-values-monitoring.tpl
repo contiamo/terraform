@@ -3,6 +3,10 @@ coreDns:
 kubeDns:
   enabled: false
 
+# Top-level upgradeJob for CRDs
+upgradeJob:
+  enabled: true
+
 grafana:
   adminUser: ${GRAFANA_ADMIN_USER}
   adminPassword: ${GRAFANA_ADMIN_PASSWORD}
@@ -13,16 +17,16 @@ grafana:
       - ReadWriteOnce
     size: ${GRAFANA_PVC_SIZE}
   ingress:
-    enabled: true
-    ingressClassName: ${GRAFANA_INGRESS_CLASS_NAME}
-    annotations:
-      cert-manager.io/cluster-issuer: ${CERT_MANAGER_CLUSTER_ISSUER_NAME}
-    hosts:
-      - ${GRAFANA_HOST}
-    tls:
-     - secretName: ${GRAFANA_HOST}-tls-auto-generated
-       hosts:
-         - ${GRAFANA_HOST}
+    enabled: false
+  route:
+    main:
+      enabled: true
+      hostnames:
+        - ${GRAFANA_HOST}
+      parentRefs:
+        - name: ${GRAFANA_GATEWAY_NAME}
+          namespace: ${GRAFANA_GATEWAY_NAMESPACE}
+          sectionName: ${GRAFANA_GATEWAY_SECTION}
   resources:
    limits:
      cpu: 500m
@@ -60,16 +64,16 @@ defaultRules:
 
 alertmanager:
   ingress:
-    enabled: true
-    ingressClassName: ${ALERT_MANAGER_INGRESS_CLASS_NAME}
-    annotations:
-      cert-manager.io/cluster-issuer: ${CERT_MANAGER_CLUSTER_ISSUER_NAME}
-    hosts:
-      - ${ALERT_MANAGER_HOST}
-    tls:
-    - secretName: ${ALERT_MANAGER_HOST}-tls-auto-generated
-      hosts:
-      - ${ALERT_MANAGER_HOST}
+    enabled: false
+  route:
+    main:
+      enabled: true
+      hostnames:
+        - ${ALERT_MANAGER_HOST}
+      parentRefs:
+        - name: ${ALERT_MANAGER_GATEWAY_NAME}
+          namespace: ${ALERT_MANAGER_GATEWAY_NAMESPACE}
+          sectionName: ${ALERT_MANAGER_GATEWAY_SECTION}
   templateFiles:
   ## An example template:
     alert_silence_template.tmpl: |-

@@ -111,15 +111,18 @@ resource "helm_release" "monitoring" {
   values = [
     templatefile("${path.module}/assets/helm-values-monitoring.tpl",
       {
-        GRAFANA_PVC_SIZE                 = var.grafana_pvc_size,
-        GRAFANA_INGRESS_CLASS_NAME       = var.grafana_ingress_class_name,
-        CERT_MANAGER_CLUSTER_ISSUER_NAME = var.cert_manager_cluster_issuer_name,
-        GRAFANA_HOST                     = var.grafana_host,
-        GRAFANA_ADMIN_USER               = var.grafana_admin_user,
-        GRAFANA_ADMIN_PASSWORD           = var.grafana_admin_password,
-        ALERT_MANAGER_INGRESS_CLASS_NAME = var.alert_manager_ingress_class_name,
-        ALERT_MANAGER_HOST               = var.alert_manager_host,
-        ALERT_MANAGER_SLACK_WEBHOOK_URL  = var.alert_manager_slack_webhook_url,
+        GRAFANA_PVC_SIZE                        = var.grafana_pvc_size,
+        GRAFANA_GATEWAY_NAME                    = var.grafana_gateway_parent_ref.name,
+        GRAFANA_GATEWAY_NAMESPACE               = var.grafana_gateway_parent_ref.namespace,
+        GRAFANA_GATEWAY_SECTION                 = var.grafana_gateway_parent_ref.section_name,
+        GRAFANA_HOST                            = var.grafana_host,
+        GRAFANA_ADMIN_USER                      = var.grafana_admin_user,
+        GRAFANA_ADMIN_PASSWORD                  = var.grafana_admin_password,
+        ALERT_MANAGER_GATEWAY_NAME              = var.alert_manager_gateway_parent_ref.name,
+        ALERT_MANAGER_GATEWAY_NAMESPACE         = var.alert_manager_gateway_parent_ref.namespace,
+        ALERT_MANAGER_GATEWAY_SECTION           = var.alert_manager_gateway_parent_ref.section_name,
+        ALERT_MANAGER_HOST                      = var.alert_manager_host,
+        ALERT_MANAGER_SLACK_WEBHOOK_URL         = var.alert_manager_slack_webhook_url,
         ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING = var.alert_manager_slack_webhook_url_web_endpoint_monitoring,
       }
     )
