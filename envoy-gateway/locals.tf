@@ -16,7 +16,7 @@ locals {
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/httproutefilters.gateway.envoyproxy.io",
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/securitypolicies.gateway.envoyproxy.io",
     ]
-    "v1.6.5" = [
+    "v1.7.2" = [
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/backends.gateway.envoyproxy.io",
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/backendtrafficpolicies.gateway.envoyproxy.io",
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/clienttrafficpolicies.gateway.envoyproxy.io",

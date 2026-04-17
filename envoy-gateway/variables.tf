@@ -13,9 +13,8 @@ variable "chart_version" {
     https://gateway.envoyproxy.io/news/releases/matrix/
   EOT
   type        = string
-  default     = "v1.6.5"
+  default     = "v1.7.2"
 }
-
 
 variable "namespace" {
   description = "Kubernetes namespace for Envoy Gateway"
