@@ -16,5 +16,15 @@ locals {
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/httproutefilters.gateway.envoyproxy.io",
       "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/securitypolicies.gateway.envoyproxy.io",
     ]
+    "v1.6.5" = [
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/backends.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/backendtrafficpolicies.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/clienttrafficpolicies.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/envoyextensionpolicies.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/envoypatchpolicies.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/envoyproxies.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/httproutefilters.gateway.envoyproxy.io",
+      "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/securitypolicies.gateway.envoyproxy.io",
+    ]
   }
 }
