@@ -16,7 +16,6 @@ variable "chart_version" {
   default     = "v1.7.2"
 }
 
-
 variable "namespace" {
   description = "Kubernetes namespace for Envoy Gateway"
   type        = string

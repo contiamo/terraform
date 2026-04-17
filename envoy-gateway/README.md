@@ -63,6 +63,7 @@ module "envoy_gateway" {
   source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.15.0"
   # contiamo-release-please-bump-end
 
+
   chart_version               = "v1.7.2"
   replicas                    = 2
   cert_manager_cluster_issuer = "letsencrypt-production"
