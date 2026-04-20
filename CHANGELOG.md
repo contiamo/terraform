@@ -38,6 +38,12 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.17.0] (2026-04-20)
+
+### Features
+
+* **envoy-gateway**: add per-gateway annotations field
+
 ## [0.16.0] (2026-04-17)
 
 ### Features
