@@ -158,9 +158,12 @@ resource "kubectl_manifest" "gateway" {
     metadata = {
       name      = each.key
       namespace = var.namespace
-      annotations = {
-        "cert-manager.io/cluster-issuer" = coalesce(each.value.cert_manager_issuer, var.cert_manager_cluster_issuer)
-      }
+      annotations = merge(
+        {
+          "cert-manager.io/cluster-issuer" = coalesce(each.value.cert_manager_issuer, var.cert_manager_cluster_issuer)
+        },
+        each.value.gateway_annotations,
+      )
     }
     spec = {
       gatewayClassName = each.key

@@ -44,9 +44,10 @@ variable "gateways" {
       domain = string # Domain pattern (e.g., "*.ctmo.io")
       name   = string # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
     }))
-    lb_annotations      = map(string)      # LoadBalancer service annotations
-    tls_secret_suffix   = optional(string) # TLS secret suffix pattern (default: "-tls-{idx}")
-    cert_manager_issuer = optional(string) # Override default cert-manager issuer
+    lb_annotations      = map(string)               # LoadBalancer service annotations
+    gateway_annotations = optional(map(string), {}) # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation)
+    tls_secret_suffix   = optional(string)          # TLS secret suffix pattern (default: "-tls-{idx}")
+    cert_manager_issuer = optional(string)          # Override default cert-manager issuer
   }))
 
   validation {

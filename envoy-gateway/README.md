@@ -148,6 +148,7 @@ module "envoy_gateway" {
 | envoyproxy_name | Custom EnvoyProxy resource name | `string` | `"{name}-proxy"` |
 | listeners | List of listener configs | `list(object)` | required |
 | lb_annotations | LoadBalancer annotations | `map(string)` | required |
+| gateway_annotations | Extra annotations on the Gateway resource (merged with the cert-manager annotation) | `map(string)` | `{}` |
 | tls_secret_suffix | TLS secret suffix pattern | `string` | `"-tls-{idx}"` |
 | cert_manager_issuer | Override default issuer | `string` | null |
 
