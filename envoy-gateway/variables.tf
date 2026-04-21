@@ -41,8 +41,9 @@ variable "gateways" {
     enabled         = optional(bool, true) # Whether to create this gateway
     envoyproxy_name = optional(string)     # Custom EnvoyProxy name (defaults to "{name}-proxy")
     listeners = list(object({
-      domain = string # Domain pattern (e.g., "*.ctmo.io")
-      name   = string # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
+      domain          = string           # Domain pattern (e.g., "*.ctmo.io")
+      name            = string           # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
+      tls_secret_name = optional(string) # Override the auto-generated TLS secret name. Use when reusing a Secret managed elsewhere (e.g. by an existing nginx Ingress) to avoid a fresh ACME issuance during cutover. If unset, the secret name is derived from `tls_secret_suffix`.
     }))
     lb_annotations      = map(string)               # LoadBalancer service annotations
     gateway_annotations = optional(map(string), {}) # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation)
