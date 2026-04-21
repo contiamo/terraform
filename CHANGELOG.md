@@ -38,6 +38,12 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.18.0] (2026-04-21)
+
+### Features
+
+* **envoy-gateway**: add per-listener tls_secret_name override
+
 ## [0.17.0] (2026-04-20)
 
 ### Features
