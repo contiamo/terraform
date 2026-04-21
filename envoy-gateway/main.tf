@@ -17,12 +17,19 @@ locals {
     for gw in var.gateways : gw.name => gw if gw.enabled
   }
 
-  # Generate TLS secret names for each gateway's listeners
+  # Resolve TLS secret names for each gateway's listeners. A listener may
+  # override `tls_secret_name` to reference a Secret managed elsewhere
+  # (e.g. an existing nginx Ingress's cert-manager Certificate that we
+  # don't want to re-issue during a cutover); otherwise the name is
+  # derived from `tls_secret_suffix`.
   gateway_tls_secrets = {
     for gw_name, gw in local.enabled_gateways : gw_name => {
-      for listener in gw.listeners : listener.name => replace(
-        "${gw.name}${coalesce(gw.tls_secret_suffix, "-tls-{idx}")}",
-        "{idx}", listener.name
+      for listener in gw.listeners : listener.name => coalesce(
+        listener.tls_secret_name,
+        replace(
+          "${gw.name}${coalesce(gw.tls_secret_suffix, "-tls-{idx}")}",
+          "{idx}", listener.name,
+        ),
       )
     }
   }

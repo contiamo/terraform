@@ -154,10 +154,11 @@ module "envoy_gateway" {
 
 ### Listener Object
 
-| Field | Description |
-|-------|-------------|
-| domain | Domain pattern (e.g., `"*.example.com"`) |
-| name | Listener name suffix (creates `http-{name}` and `https-{name}`) |
+| Field | Description | Default |
+|-------|-------------|---------|
+| domain | Domain pattern (e.g., `"*.example.com"`) | required |
+| name | Listener name suffix (creates `http-{name}` and `https-{name}`) | required |
+| tls_secret_name | Override the auto-generated TLS Secret name. Use when reusing a Secret managed elsewhere (e.g. by an existing nginx Ingress's cert-manager Certificate) so cutover does not require a fresh ACME issuance. If unset, the Secret name is derived from `tls_secret_suffix` on the parent Gateway. | derived |
 
 ## Outputs
 
