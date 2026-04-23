@@ -3,19 +3,84 @@ coreDns:
 kubeDns:
   enabled: false
 
-# Top-level upgradeJob for CRDs
-upgradeJob:
-  enabled: true
+# Required by kube-prometheus-stack 83.x to upgrade CRDs in place rather
+# than requiring out-of-band kubectl runs.
+crds:
+  upgradeJob:
+    enabled: true
 
 grafana:
+  assertNoLeakedSecrets: false
   adminUser: ${GRAFANA_ADMIN_USER}
   adminPassword: ${GRAFANA_ADMIN_PASSWORD}
+  grafana.ini:
+%{ if GRAFANA_AUTO_ASSIGN_ORG_ID > 0 ~}
+    users:
+      auto_assign_org_id: ${GRAFANA_AUTO_ASSIGN_ORG_ID}
+%{ endif ~}
+    server:
+      root_url: https://${GRAFANA_HOST}
+%{ if GRAFANA_OAUTH_ENABLED ~}
+    auth.generic_oauth:
+      enabled: true
+      name: ${GRAFANA_OAUTH_NAME}
+      client_id: ${GRAFANA_OAUTH_CLIENT_ID}
+      client_secret: ${GRAFANA_OAUTH_CLIENT_SECRET}
+      scopes: ${GRAFANA_OAUTH_SCOPES}
+      auth_url: ${GRAFANA_OAUTH_AUTH_URL}
+      token_url: ${GRAFANA_OAUTH_TOKEN_URL}
+      api_url: ${GRAFANA_OAUTH_API_URL}
+%{ if GRAFANA_OAUTH_ROLE_ATTRIBUTE_PATH != "" ~}
+      role_attribute_path: ${GRAFANA_OAUTH_ROLE_ATTRIBUTE_PATH}
+%{ endif ~}
+      role_attribute_strict: ${GRAFANA_OAUTH_ROLE_ATTRIBUTE_STRICT}
+      use_refresh_token: ${GRAFANA_OAUTH_USE_REFRESH_TOKEN}
+      auto_login: ${GRAFANA_OAUTH_AUTO_LOGIN}
+      skip_org_role_sync: ${GRAFANA_OAUTH_SKIP_ORG_ROLE_SYNC}
+%{ endif ~}
+%{ if length(GRAFANA_PLUGINS) > 0 ~}
+  plugins:
+%{ for plugin in GRAFANA_PLUGINS ~}
+    - ${plugin}
+%{ endfor ~}
+%{ endif ~}
+%{ if length(GRAFANA_EXTRA_DASHBOARD_PROVIDERS) > 0 ~}
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+%{ for provider in GRAFANA_EXTRA_DASHBOARD_PROVIDERS ~}
+        - name: '${provider.name}'
+          orgId: ${provider.org_id}
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/${provider.name}
+%{ endfor ~}
+  extraVolumeMounts:
+%{ for provider in GRAFANA_EXTRA_DASHBOARD_PROVIDERS ~}
+    - name: dashboards-${provider.name}
+      mountPath: /var/lib/grafana/dashboards/${provider.name}
+%{ endfor ~}
+  extraVolumes:
+%{ for provider in GRAFANA_EXTRA_DASHBOARD_PROVIDERS ~}
+    - name: dashboards-${provider.name}
+      configMap:
+        name: ${provider.configmap_name}
+%{ endfor ~}
+%{ endif ~}
   persistence:
     type: pvc
-    enabled: false
+    enabled: true
+    storageClassName: ${GRAFANA_PVC_STORAGE_CLASS}
     accessModes:
       - ReadWriteOnce
     size: ${GRAFANA_PVC_SIZE}
+  # RWO PVC + RollingUpdate causes Multi-Attach errors on upgrade. Force the
+  # old pod to terminate (releasing the volume) before the new one starts.
+  deploymentStrategy:
+    type: Recreate
   ingress:
     enabled: false
   route:
