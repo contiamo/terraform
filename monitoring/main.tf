@@ -41,6 +41,19 @@ resource "aws_iam_policy" "loki_storage_policy" {
   tags = var.aws_tags
 }
 
+# Pre-v0.19.0 these were declared without `count` (EKS-only module). Adding
+# the toggle for non-EKS clusters required `count`, so existing EKS callers
+# need `moved` blocks to avoid a destroy/create on the IAM role.
+moved {
+  from = aws_iam_policy.loki_storage_policy
+  to   = aws_iam_policy.loki_storage_policy[0]
+}
+
+moved {
+  from = module.loki_service_account_role
+  to   = module.loki_service_account_role[0]
+}
+
 module "loki_service_account_role" {
   count   = local.is_eks ? 1 : 0
   source  = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts"
