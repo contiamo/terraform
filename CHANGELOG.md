@@ -38,6 +38,12 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.20.0] (2026-04-24)
+
+### Features
+
+* **onepassword-connect**: new module with auto-updating CRDs (CON-2415)
+
 ## [0.19.0] (2026-04-23)
 
 ### Features
