@@ -16,8 +16,12 @@ jobs:
       - name: Get latest stable Envoy Gateway release
         id: latest
         run: |
+          # Sort by semantic version, not publication date — a patch on an
+          # older minor line can be published after a newer minor release
+          # (e.g. v1.6.7 backported after v1.7.2 already exists).
           VERSION=$(gh api repos/envoyproxy/gateway/releases \
-            --jq '[.[] | select(.prerelease == false and .draft == false)][0].tag_name')
+            --jq '.[] | select(.prerelease == false and .draft == false) | .tag_name' \
+            | sort -V | tail -n1)
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Latest stable release: ${VERSION}"
         env:
