@@ -16,8 +16,11 @@ jobs:
       - name: Get latest stable Gateway API release
         id: latest
         run: |
+          # Sort by semantic version, not publication date — a patch on an
+          # older minor line can be published after a newer minor release.
           VERSION=$(gh api repos/kubernetes-sigs/gateway-api/releases \
-            --jq '[.[] | select(.prerelease == false and .draft == false)][0].tag_name')
+            --jq '.[] | select(.prerelease == false and .draft == false) | .tag_name' \
+            | sort -V | tail -n1)
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "Latest stable release: ${VERSION}"
         env:
