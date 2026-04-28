@@ -126,6 +126,7 @@ defaultRules:
     AlertmanagerFailedToSendAlerts: true
     CPUThrottlingHigh: true
     KubeletTooManyPods: true
+    KubeProxyDown: true
 
 alertmanager:
   ingress:
