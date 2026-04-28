@@ -11,7 +11,7 @@ module "onepassword_secret" {
     # To reference as a private repo use "git@github.com:/contiamo...:
     # source = "git@github.com:contiamo/terraform.git//onepassword-secret"
     # contiamo-release-please-bump-start
-    source = "github.com/contiamo/terraform//onepassword-secret?ref=v0.20.0"
+    source = "github.com/contiamo/terraform//onepassword-secret?ref=v0.20.1"
     # contiamo-release-please-bump-end
     vault_name = "My Vault"
     item_name  = "My Secret Item"
