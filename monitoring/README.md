@@ -17,7 +17,7 @@ The stack assumes:
 ```hcl
 module "monitoring" {
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//monitoring?ref=v0.20.0"
+  source = "github.com/contiamo/terraform//monitoring?ref=v0.20.1"
   # contiamo-release-please-bump-end
 
   target_namespace        = "monitoring"
@@ -56,7 +56,7 @@ module "monitoring" {
 ```hcl
 module "monitoring" {
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//monitoring?ref=v0.20.0"
+  source = "github.com/contiamo/terraform//monitoring?ref=v0.20.1"
   # contiamo-release-please-bump-end
 
   target_cluster                        = "otc"
