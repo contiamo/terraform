@@ -21,3 +21,4 @@ jobs:
         uses: techpivot/terraform-module-releaser@v2
         with:
           delete-legacy-tags: false
+          github_token: ${{ secrets.CONTIAMO_CI_TOKEN }}
