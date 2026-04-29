@@ -10,9 +10,7 @@ This module retrieves a secret field value from a 1Password item. It looks up a 
 module "onepassword_secret" {
     # To reference as a private repo use "git@github.com:/contiamo...:
     # source = "git@github.com:contiamo/terraform.git//onepassword-secret"
-    # contiamo-release-please-bump-start
-    source = "github.com/contiamo/terraform//onepassword-secret?ref=v0.20.2"
-    # contiamo-release-please-bump-end
+    source = "github.com/contiamo/terraform//onepassword-secret?ref=onepassword-secret/v1.0.0"
     vault_name = "My Vault"
     item_name  = "My Secret Item"
     field      = "password"

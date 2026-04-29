@@ -16,9 +16,7 @@ The stack assumes:
 
 ```hcl
 module "monitoring" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//monitoring?ref=v0.20.2"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//monitoring?ref=monitoring/v1.0.0"
 
   target_namespace        = "monitoring"
   kube_prometheus_version = "83.4.3"
@@ -55,9 +53,7 @@ module "monitoring" {
 
 ```hcl
 module "monitoring" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//monitoring?ref=v0.20.2"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//monitoring?ref=monitoring/v1.0.0"
 
   target_cluster                        = "otc"
   target_namespace                      = "monitoring"
