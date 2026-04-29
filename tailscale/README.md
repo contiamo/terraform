@@ -10,7 +10,7 @@ This module installs a Tailscale Subnet Router for a K8S cluster
 module "tailscale" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//tailscale"
-  source = "github.com/contiamo/terraform//tailscale?ref=tailscale/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=tailscale/v1.0.0"
   tailscale_auth_key = var.tailscale_auth_key
   create_tailscale_auth_key_secret = var.create_tailscale_auth_key_secret
   image_tag = "v1.54.1"

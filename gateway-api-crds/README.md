@@ -6,7 +6,7 @@ Installs the [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) CRDs usi
 
 ```hcl
 module "gateway_api_crds" {
-  source = "github.com/contiamo/terraform//gateway-api-crds?ref=gateway-api-crds/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=gateway-api-crds/v1.0.0"
 
   crd_version = "v1.5.1"
 }
