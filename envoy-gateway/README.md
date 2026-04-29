@@ -39,9 +39,7 @@ Deploys [Envoy Gateway](https://gateway.envoyproxy.io/) on Kubernetes with suppo
 
 ```hcl
 module "envoy_gateway" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.20.2"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=envoy-gateway/v1.0.0"
 
   gateways = [{
     name = "envoy-public"
@@ -59,9 +57,7 @@ module "envoy_gateway" {
 
 ```hcl
 module "envoy_gateway" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.20.2"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=envoy-gateway/v1.0.0"
 
 
   chart_version               = "v1.7.2"
@@ -103,9 +99,7 @@ module "envoy_gateway" {
 
 ```hcl
 module "envoy_gateway" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//envoy-gateway?ref=v0.20.2"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//envoy-gateway?ref=envoy-gateway/v1.0.0"
 
   cert_manager_cluster_issuer = "letsencrypt-production-dns01"
 

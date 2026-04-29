@@ -9,9 +9,7 @@ This module creates a Slack channel and adds provided users (references by their
 module "slack" {
     # To reference as a private repo use "git@github.com:/contiamo...:
     # source = "git@github.com:contiamo/terraform.git//slack"
-    # contiamo-release-please-bump-start
-    source = "github.com/contiamo/terraform//slack?ref=v0.20.2"
-    # contiamo-release-please-bump-end
+    source = "github.com/contiamo/terraform//slack?ref=slack/v1.0.0"
     channel_name = "[new channel name]"
     channel_topic = "[new channel description]"
     channel_members = [list of user emails]

@@ -7,9 +7,7 @@ This module  sets up a cronjob that keeps temporary Docker credentials for ECR u
 
 ```hcl
 module "ecr_helper" {
-  # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//ecr-helper-module?ref=v0.20.2"
-  # contiamo-release-please-bump-end
+  source = "github.com/contiamo/terraform//ecr-pull-helper?ref=ecr-pull-helper/v1.0.0"
 
   aws_secret_access_key       = [AWS secrets access key for a user with read-only ECR access]
   aws_access_key_id           = [AWS secret access key ID for a user with read-only ECR access]
