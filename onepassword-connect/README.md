@@ -28,7 +28,7 @@ Deploys the [1Password Connect Helm chart](https://github.com/1Password/connect-
 ```hcl
 module "onepassword_connect" {
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//onepassword-connect?ref=v0.20.1"
+  source = "github.com/contiamo/terraform//onepassword-connect?ref=v0.20.2"
   # contiamo-release-please-bump-end
 
   chart_version = "2.4.1"
@@ -56,7 +56,7 @@ Use this when the cluster should read secrets from 1Password without running a C
 ```hcl
 module "onepassword_operator" {
   # contiamo-release-please-bump-start
-  source = "github.com/contiamo/terraform//onepassword-connect?ref=v0.20.1"
+  source = "github.com/contiamo/terraform//onepassword-connect?ref=v0.20.2"
   # contiamo-release-please-bump-end
 
   chart_version = "2.4.1"

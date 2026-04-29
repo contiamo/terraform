@@ -38,6 +38,13 @@
 
 * EKS iam module path ([6a732d6](https://github.com/contiamo/terraform/commit/6a732d616923ceecf0579aef56865932fc9c0bf3))
 
+## [0.20.2] (2026-04-29)
+
+### Bug Fixes
+
+* **ecr-pull-helper**: drop kubernetes provider version pin
+* **ci**: sort releases by semver, not publication date
+
 ## [0.20.1] (2026-04-28)
 
 ### Bug Fixes
