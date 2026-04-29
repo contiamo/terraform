@@ -16,7 +16,7 @@ The stack assumes:
 
 ```hcl
 module "monitoring" {
-  source = "github.com/contiamo/terraform//monitoring?ref=monitoring/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=monitoring/v1.0.0"
 
   target_namespace        = "monitoring"
   kube_prometheus_version = "83.4.3"
@@ -53,7 +53,7 @@ module "monitoring" {
 
 ```hcl
 module "monitoring" {
-  source = "github.com/contiamo/terraform//monitoring?ref=monitoring/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=monitoring/v1.0.0"
 
   target_cluster                        = "otc"
   target_namespace                      = "monitoring"

@@ -16,7 +16,7 @@ This module is based on [this AWS community article](https://community.aws/tutor
 module "external_dns" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//external-dns"
-  source = "github.com/contiamo/terraform//external-dns?ref=external-dns/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=external-dns/v1.0.0"
   aws_region         = var.aws_region
   provider_arn       = [ Your EKS OIDC Provider ARN ]
   k8s_namespace      = "kube-system"

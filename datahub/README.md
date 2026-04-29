@@ -12,7 +12,7 @@ The release will be installed into the cluster to which your kubectl config is c
 module "datahub" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//datahub"
-  source = "github.com/contiamo/terraform//datahub?ref=datahub/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=datahub/v1.0.0"
   datahub_namespace = "[your namespace]"
   ui_ingress_host = "[UI domain]"
   api_ingress_host = "[API domain]"
