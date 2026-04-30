@@ -33,7 +33,7 @@ The module deploys a complete Langfuse stack on Kubernetes including:
 module "langfuse" {
   # To reference as a private repo use "git@github.com:/contiamo...:
   # source = "git@github.com:contiamo/terraform.git//langfuse"
-  source = "github.com/contiamo/terraform//langfuse?ref=langfuse/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=langfuse/v1.0.0"
 
   langfuse_host          = "langfuse.example.com"
   admin_email            = "admin@example.com"
@@ -61,7 +61,7 @@ output "langfuse_access" {
 ```terraform
 # Deploy Langfuse
 module "langfuse" {
-  source = "github.com/contiamo/terraform//langfuse?ref=langfuse/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=langfuse/v1.0.0"
 
   langfuse_host          = "langfuse.mycompany.io"
   admin_email            = "platform@mycompany.io"

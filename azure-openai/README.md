@@ -36,7 +36,7 @@ This fork includes breaking changes to align with Azure provider updates:
 
 ```hcl
 module "openai" {
-  source = "github.com/contiamo/terraform//azure-openai?ref=azure-openai/v1.0.0"
+  source = "github.com/contiamo/terraform?ref=azure-openai/v1.0.0"
 
   resource_group_name = "my-resource-group"
   location            = "eastus"
@@ -59,7 +59,7 @@ module "openai" {
 
 ```hcl
 module "openai" {
-  source                         = "github.com/contiamo/terraform//azure-openai?ref=azure-openai/v1.0.0"
+  source                         = "github.com/contiamo/terraform?ref=azure-openai/v1.0.0"
   resource_group_name            = "my-resource-group"
   location                       = "eastus"
   account_name                   = "my-openai-account"

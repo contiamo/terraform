@@ -9,7 +9,7 @@ This module can be used to create Github repos with Contiamo's standard repo set
 module "github" {
     # To reference as a private repo use "git@github.com:/contiamo...:
     # source = "git@github.com:contiamo/terraform.git//github"
-    source = "github.com/contiamo/terraform//github?ref=github/v1.0.0"
+    source = "github.com/contiamo/terraform?ref=github/v1.0.0"
     repo_name = var.project_name
     repo_description = var.project_description
     repo_collaborators = local.users_to_add_as_github_collaborators
