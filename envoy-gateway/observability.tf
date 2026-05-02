@@ -12,6 +12,15 @@ locals {
 resource "kubectl_manifest" "grafana_dashboards" {
   count = var.enable_grafana_dashboards ? 1 : 0
 
+  # The 5 vendored dashboards total ~237 KB. Client-side apply (the kubectl
+  # provider's default) stores the entire object in the
+  # `kubectl.kubernetes.io/last-applied-configuration` annotation, blowing
+  # past the kube-apiserver's 256 KiB per-object annotation cap. Server-side
+  # apply records managed fields in `metadata.managedFields` instead, which
+  # has no such limit.
+  server_side_apply = true
+  force_conflicts   = true
+
   yaml_body = yamlencode({
     apiVersion = "v1"
     kind       = "ConfigMap"
