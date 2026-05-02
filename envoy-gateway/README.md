@@ -131,6 +131,13 @@ module "envoy_gateway" {
 | namespace | Kubernetes namespace | `string` | `"envoy-gateway-system"` | no |
 | replicas | Number of Envoy proxy replicas | `number` | `2` | no |
 | cert_manager_cluster_issuer | Default cert-manager ClusterIssuer | `string` | `"letsencrypt-production-route53"` | no |
+| enable_grafana_dashboards | Install the upstream Envoy Gateway Grafana dashboards as a sidecar-discovered ConfigMap | `bool` | `true` | no |
+| enable_metrics_scraping | Install ServiceMonitor (control plane) + PodMonitor (data plane) for Prometheus | `bool` | `true` | no |
+| monitoring_namespace | Namespace where kube-prometheus-stack runs | `string` | `"monitoring"` | no |
+| dashboard_label | Label key the Grafana sidecar watches | `string` | `"grafana_dashboard"` | no |
+| dashboard_label_value | Value paired with `dashboard_label` | `string` | `"1"` | no |
+| service_monitor_release_label | Label key the Prometheus CR's monitor selector requires | `string` | `"release"` | no |
+| service_monitor_release_value | Value paired with `service_monitor_release_label` | `string` | `"monitoring-stack"` | no |
 | gateways | List of gateway configurations | `list(object)` | n/a | yes |
 
 ### Gateway Object
@@ -162,6 +169,35 @@ module "envoy_gateway" {
 | gateways | Map of gateway configurations with service names |
 | gateway_names | List of enabled gateway names |
 | service_names | Map of gateway names to K8s service names |
+
+## Observability
+
+By default the module installs:
+
+- **5 Grafana dashboards** (vendored under `dashboards/`, pinned to `chart_version`) as a ConfigMap labelled for the kube-prometheus-stack Grafana sidecar. Dashboards land under `Dashboards/General` (or whichever folder your sidecar is configured to drop them in) named `Envoy Proxy Global`, `Envoy Clusters`, `Envoy Gateway Global`, `Resources Monitor`, and `Global Ratelimit`.
+- **A ServiceMonitor** (`envoy-gateway`) scraping the controller's `metrics` port (19001 / `/metrics`).
+- **A PodMonitor** (`envoy-proxy`) scraping every Envoy proxy pod the controller spawns (port `metrics`, path `/stats/prometheus`).
+
+Disable either with:
+
+```hcl
+module "envoy_gateway" {
+  # …
+  enable_grafana_dashboards = false   # skip the ConfigMap
+  enable_metrics_scraping   = false   # skip ServiceMonitor + PodMonitor
+}
+```
+
+If your kube-prometheus-stack release name isn't `monitoring-stack`, override `service_monitor_release_value` so the Prometheus CR's selector picks the monitors up.
+
+### Refreshing the dashboards
+
+When bumping `chart_version`, refresh the vendored JSON next to the CRD bump:
+
+```bash
+./envoy-gateway/scripts/update-envoy-crds.sh v1.8.0
+./envoy-gateway/scripts/update-envoy-dashboards.sh v1.8.0
+```
 
 ## Creating HTTPRoutes
 

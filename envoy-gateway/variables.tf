@@ -34,6 +34,59 @@ variable "cert_manager_cluster_issuer" {
   default     = "letsencrypt-production-route53"
 }
 
+variable "enable_grafana_dashboards" {
+  description = <<-EOT
+    Install the upstream Envoy Gateway Grafana dashboards as a ConfigMap in
+    `monitoring_namespace`, labelled for kube-prometheus-stack's Grafana
+    sidecar to pick up. Dashboards are vendored under `dashboards/` and pinned
+    to chart_version. Refresh with scripts/update-envoy-dashboards.sh.
+  EOT
+  type        = bool
+  default     = true
+}
+
+variable "enable_metrics_scraping" {
+  description = <<-EOT
+    Create a ServiceMonitor for the Envoy Gateway controller and a PodMonitor
+    for the Envoy proxy fleet so Prometheus scrapes both control-plane and
+    data-plane metrics. Requires the Prometheus Operator CRDs
+    (monitoring.coreos.com/v1) to be present in the cluster — typically via
+    kube-prometheus-stack.
+  EOT
+  type        = bool
+  default     = true
+}
+
+variable "monitoring_namespace" {
+  description = "Namespace where kube-prometheus-stack runs. Hosts the dashboards ConfigMap and the ServiceMonitor / PodMonitor."
+  type        = string
+  default     = "monitoring"
+}
+
+variable "dashboard_label" {
+  description = "Label key the Grafana sidecar watches. Default matches kube-prometheus-stack's sidecar default (`grafana_dashboard`)."
+  type        = string
+  default     = "grafana_dashboard"
+}
+
+variable "dashboard_label_value" {
+  description = "Value paired with `dashboard_label`. Default matches the kube-prometheus-stack sidecar default (`1`)."
+  type        = string
+  default     = "1"
+}
+
+variable "service_monitor_release_label" {
+  description = "Label key on ServiceMonitor / PodMonitor used by the Prometheus CR's selector. kube-prometheus-stack defaults to `release`."
+  type        = string
+  default     = "release"
+}
+
+variable "service_monitor_release_value" {
+  description = "Value paired with `service_monitor_release_label` so Prometheus picks up the monitors. kube-prometheus-stack uses the Helm release name (typically `monitoring-stack`)."
+  type        = string
+  default     = "monitoring-stack"
+}
+
 variable "gateways" {
   description = "List of gateway configurations. Each gateway creates a GatewayClass, EnvoyProxy, Gateway, and HTTPRoute."
   type = list(object({
