@@ -26,11 +26,12 @@ resource "terraform_data" "onepassword_crds_version_check" {
 
   lifecycle {
     precondition {
-      condition     = contains(keys(local.chart_version_to_crds_map), var.chart_version)
+      condition     = fileexists("${path.module}/crds/onepassword-crd-${var.chart_version}.yaml")
       error_message = <<-EOT
         Unsupported chart_version: "${var.chart_version}"
 
-        Supported versions: ${jsonencode(keys(local.chart_version_to_crds_map))}
+        No CRDs file found at:
+          crds/onepassword-crd-${var.chart_version}.yaml
 
         To add a new version, run:
           ./onepassword-connect/scripts/update-onepassword-crds.sh <version>
@@ -42,17 +43,31 @@ resource "terraform_data" "onepassword_crds_version_check" {
   }
 }
 
-data "kubectl_file_documents" "onepassword_crds" {
-  depends_on = [terraform_data.onepassword_crds_version_check]
-  content    = file("${path.module}/crds/onepassword-crd-${var.chart_version}.yaml")
+# The CRD YAML is parsed in pure HCL — `split` separates documents,
+# `yamldecode` parses each one, and `for_each` keys are derived from
+# `<kind>/<metadata.name>` at plan time. This sidesteps the kubectl provider's
+# `data.kubectl_file_documents` deferred-read behaviour, which was causing
+# every consumer's plan to mark each `kubectl_manifest` as "update in-place"
+# (yaml_body `(known after apply)`) on every run.
+locals {
+  onepassword_crd_docs = [
+    for doc in split("\n---\n", file("${path.module}/crds/onepassword-crd-${var.chart_version}.yaml")) :
+    yamldecode(doc) if can(yamldecode(doc)) && try(yamldecode(doc).kind, null) != null
+  ]
+  onepassword_crd_map = {
+    for d in local.onepassword_crd_docs : "${d.kind}/${d.metadata.name}" => d
+  }
 }
 
 resource "kubectl_manifest" "onepassword_crds" {
-  for_each          = toset(local.chart_version_to_crds_map[var.chart_version])
-  yaml_body         = data.kubectl_file_documents.onepassword_crds.manifests[each.value]
+  for_each = local.onepassword_crd_map
+
+  yaml_body         = yamlencode(each.value)
   server_side_apply = true
   force_conflicts   = true
   wait              = true
+
+  depends_on = [terraform_data.onepassword_crds_version_check]
 }
 
 # ----------------------------------------------------------------------------
