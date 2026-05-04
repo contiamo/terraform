@@ -39,13 +39,20 @@ locals {
 # Envoy Gateway CRDs (gateway.envoyproxy.io/*)
 # ----------------------------------------------------------------------------
 # We install Envoy Gateway-specific CRDs from a per-version YAML file rendered
-# from gateway-crds-helm. Same pattern as the gateway-api-crds module.
+# from gateway-crds-helm.
 #
 # The main gateway-helm chart (below) uses skip_crds = true so we MUST install
 # these CRDs separately or the controller will have nothing to watch.
 #
 # To add a new chart version, run scripts/update-envoy-crds.sh (or wait for
 # the daily update-envoy-gateway-crds workflow to open a PR).
+#
+# The multi-doc YAML is parsed in pure HCL — `split` separates documents,
+# `yamldecode` parses each one, and `for_each` keys are derived from
+# `<kind>/<metadata.name>` at plan time. This sidesteps the kubectl provider's
+# `data.kubectl_file_documents` deferred-read behaviour, which was causing
+# every consumer's plan to mark each `kubectl_manifest` as "update in-place"
+# (yaml_body `(known after apply)`) on every run.
 
 # Validate that the chart_version has a corresponding CRDs file. Produces a
 # clear error at plan time if someone uses an unsupported version.
@@ -54,11 +61,12 @@ resource "terraform_data" "envoy_gateway_crds_version_check" {
 
   lifecycle {
     precondition {
-      condition     = contains(keys(local.chart_version_to_envoy_crds_map), var.chart_version)
+      condition     = fileexists("${path.module}/crds/envoy-crds-${var.chart_version}.yaml")
       error_message = <<-EOT
         Unsupported chart_version: "${var.chart_version}"
 
-        Supported versions: ${jsonencode(keys(local.chart_version_to_envoy_crds_map))}
+        No CRDs file found at:
+          crds/envoy-crds-${var.chart_version}.yaml
 
         To add a new version, run:
           ./envoy-gateway/scripts/update-envoy-crds.sh <version>
@@ -69,17 +77,25 @@ resource "terraform_data" "envoy_gateway_crds_version_check" {
   }
 }
 
-data "kubectl_file_documents" "envoy_gateway_crds" {
-  depends_on = [terraform_data.envoy_gateway_crds_version_check]
-  content    = file("${path.module}/crds/envoy-crds-${var.chart_version}.yaml")
+locals {
+  envoy_crd_docs = [
+    for doc in split("\n---\n", file("${path.module}/crds/envoy-crds-${var.chart_version}.yaml")) :
+    yamldecode(doc) if can(yamldecode(doc)) && try(yamldecode(doc).kind, null) != null
+  ]
+  envoy_crd_map = {
+    for d in local.envoy_crd_docs : "${d.kind}/${d.metadata.name}" => d
+  }
 }
 
 resource "kubectl_manifest" "envoy_gateway_crds" {
-  for_each          = toset(local.chart_version_to_envoy_crds_map[var.chart_version])
-  yaml_body         = data.kubectl_file_documents.envoy_gateway_crds.manifests[each.value]
+  for_each = local.envoy_crd_map
+
+  yaml_body         = yamlencode(each.value)
   server_side_apply = true
   force_conflicts   = true
   wait              = true
+
+  depends_on = [terraform_data.envoy_gateway_crds_version_check]
 }
 
 # Deploy Envoy Gateway Helm chart.
