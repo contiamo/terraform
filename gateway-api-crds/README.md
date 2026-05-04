@@ -26,17 +26,15 @@ module "gateway_api_crds" {
 
 ## Adding a new Gateway API version
 
-1. Download the standard install YAML:
-   ```bash
-   curl -Lo crds/vX.Y.Z-standard-install.yaml \
-     https://github.com/kubernetes-sigs/gateway-api/releases/download/vX.Y.Z/standard-install.yaml
-   ```
+The daily `update-gateway-api-crds` GitHub Actions workflow opens a PR
+automatically when a new Gateway API version is released. To add one
+manually:
 
-2. Get the manifest keys by running a targeted plan:
-   ```bash
-   tofu plan -target=data.kubectl_file_documents.gateway_api_crds
-   ```
+```bash
+./gateway-api-crds/scripts/update-crds.sh v1.6.0
+```
 
-3. Add the version entry to `locals.tf` with the manifest keys from step 2.
-
-4. Update the `crd_version` default in `variables.tf`.
+The script downloads the standard-install YAML and bumps the default in
+`variables.tf` and the example in this README. No manual key tracking is
+needed — the module parses the YAML at plan time and derives `for_each`
+keys from `<kind>/<metadata.name>`.
