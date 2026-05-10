@@ -60,7 +60,7 @@ module "envoy_gateway" {
   source = "github.com/contiamo/terraform?ref=envoy-gateway/v1.0.0"
 
 
-  chart_version               = "v1.7.2"
+  chart_version               = "v1.7.3"
   replicas                    = 2
   cert_manager_cluster_issuer = "letsencrypt-production"
 
@@ -127,7 +127,7 @@ module "envoy_gateway" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| chart_version | Envoy Gateway Helm chart version | `string` | `"v1.7.2"` | no |
+| chart_version | Envoy Gateway Helm chart version | `string` | `"v1.7.3"` | no |
 | namespace | Kubernetes namespace | `string` | `"envoy-gateway-system"` | no |
 | replicas | Number of Envoy proxy replicas | `number` | `2` | no |
 | cert_manager_cluster_issuer | Default cert-manager ClusterIssuer | `string` | `"letsencrypt-production-route53"` | no |
