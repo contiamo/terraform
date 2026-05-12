@@ -12,7 +12,7 @@ variable "chart_version" {
     See: https://github.com/aws/karpenter-provider-aws/releases
   EOT
   type        = string
-  default     = "1.12.0"
+  default     = "1.12.1"
 }
 
 variable "namespace" {
