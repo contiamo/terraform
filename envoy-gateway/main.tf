@@ -190,6 +190,17 @@ resource "kubectl_manifest" "gateway" {
     }
     spec = {
       gatewayClassName = each.key
+      # Controls which ListenerSets can attach to this Gateway. Defaults
+      # to "All" in our variable schema so chart authors can ship a
+      # ListenerSet in their app's own namespace and have it attach
+      # without explicit per-Gateway config from this module's caller.
+      # SNI hostname matching still applies, so a ListenerSet can't
+      # hijack an already-served hostname.
+      allowedListeners = {
+        namespaces = {
+          from = each.value.allowed_listeners_from
+        }
+      }
       listeners = concat(
         # HTTP listeners
         [
