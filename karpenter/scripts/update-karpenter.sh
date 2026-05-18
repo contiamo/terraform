@@ -87,7 +87,11 @@ items = [v.strip().strip('"') for v in m.group(1).split(',') if v.strip().strip(
 items.append("${VERSION}")
 items = sorted(set(items), key=lambda v: tuple(int(x) for x in v.split('.')), reverse=True)
 new_block = ',\n    '.join(f'"{v}"' for v in items)
-s = re.sub(r'(supported_versions\s*=\s*\[)(.*?)(\])', r'\1\n    ' + new_block + ',\n  \3', s, flags=re.DOTALL)
+# Build replacement carefully: the closing-bracket backreference must be
+# expressed as a raw string, otherwise '\3' is parsed as the octal escape
+# 0x03 (ETX) and the ']' is dropped, producing an invalid locals.tf.
+replacement = r'\1' + '\n    ' + new_block + ',\n  ' + r'\3'
+s = re.sub(r'(supported_versions\s*=\s*\[)(.*?)(\])', replacement, s, flags=re.DOTALL)
 p.write_text(s)
 PY
 
