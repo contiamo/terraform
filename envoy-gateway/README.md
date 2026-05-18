@@ -152,6 +152,7 @@ module "envoy_gateway" {
 | gateway_annotations | Extra annotations on the Gateway resource (merged with the cert-manager annotation) | `map(string)` | `{}` |
 | tls_secret_suffix | TLS secret suffix pattern | `string` | `"-tls-{idx}"` |
 | cert_manager_issuer | Override default issuer | `string` | null |
+| allowed_listeners_from | Which ListenerSets may attach to this Gateway (`spec.allowedListeners.namespaces.from`). One of `All`, `Same`, `None`. Default `All` so chart authors can ship ListenerSets in their own namespace. The Gateway API spec default is `None`. | `string` | `"All"` |
 
 ### Listener Object
 

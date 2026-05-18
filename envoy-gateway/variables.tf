@@ -102,10 +102,32 @@ variable "gateways" {
     gateway_annotations = optional(map(string), {}) # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation)
     tls_secret_suffix   = optional(string)          # TLS secret suffix pattern (default: "-tls-{idx}")
     cert_manager_issuer = optional(string)          # Override default cert-manager issuer
+    # Which ListenerSets are allowed to attach to this Gateway. Maps to
+    # spec.allowedListeners.namespaces.from on the Gateway resource.
+    # Possible values:
+    #   * "All"  — ListenerSets in any namespace can attach (our default;
+    #              enables chart-author-owned ListenerSets that live in
+    #              the chart's own namespace).
+    #   * "Same" — only ListenerSets in envoy-gateway-system can attach.
+    #   * "None" — no ListenerSets attach; only listeners defined inline
+    #              on the Gateway are honoured. This is the Gateway API
+    #              spec default — flipped to "All" here because shipping
+    #              the cluster wildcard plus per-host ListenerSets is the
+    #              standard Contiamo pattern.
+    # SNI hostname matching still applies regardless of this setting, so a
+    # ListenerSet can't hijack an already-served hostname.
+    allowed_listeners_from = optional(string, "All")
   }))
 
   validation {
     condition     = length(var.gateways) > 0
     error_message = "At least one gateway must be configured."
+  }
+
+  validation {
+    condition = alltrue([
+      for g in var.gateways : contains(["All", "Same", "None"], g.allowed_listeners_from)
+    ])
+    error_message = "allowed_listeners_from must be one of: All, Same, None. (The Gateway API spec also defines Selector, but this module doesn't yet expose the selector field.)"
   }
 }
