@@ -11,7 +11,7 @@ locals {
   supported_versions = [
     "1.12.1",
     "1.12.0",
-  
+  ]
 
   # Karpenter v1 CRDs. Stable across versions on the v1.x line.
   crd_files = toset([
