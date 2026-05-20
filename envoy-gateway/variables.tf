@@ -93,15 +93,23 @@ variable "gateways" {
     name            = string               # Gateway name (e.g., "envoy-public")
     enabled         = optional(bool, true) # Whether to create this gateway
     envoyproxy_name = optional(string)     # Custom EnvoyProxy name (defaults to "{name}-proxy")
-    listeners = list(object({
+    # Per-host HTTP+HTTPS listener pairs to create on the Gateway. When
+    # empty (the default), the Gateway is created in "ListenerSet-only"
+    # mode: no per-host listeners, no cert-manager annotation, no
+    # HTTP->HTTPS redirect HTTPRoute, and a single placeholder HTTP
+    # listener (`anchor-http`, port 80, no hostname filter) is synthesised
+    # so the Gateway resource passes the Gateway API CRD's `listeners`
+    # minItems=1 check. Attach per-host listeners via ListenerSets owned
+    # by the consuming chart instead.
+    listeners = optional(list(object({
       domain          = string           # Domain pattern (e.g., "*.ctmo.io")
       name            = string           # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
       tls_secret_name = optional(string) # Override the auto-generated TLS secret name. Use when reusing a Secret managed elsewhere (e.g. by an existing nginx Ingress) to avoid a fresh ACME issuance during cutover. If unset, the secret name is derived from `tls_secret_suffix`.
-    }))
-    lb_annotations      = map(string)               # LoadBalancer service annotations
-    gateway_annotations = optional(map(string), {}) # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation)
-    tls_secret_suffix   = optional(string)          # TLS secret suffix pattern (default: "-tls-{idx}")
-    cert_manager_issuer = optional(string)          # Override default cert-manager issuer
+    })), [])
+    lb_annotations      = map(string)                       # LoadBalancer service annotations
+    gateway_annotations = optional(map(string), {})         # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation when listeners is non-empty)
+    tls_secret_suffix   = optional(string, "-tls-{idx}")    # TLS secret suffix pattern. Only consumed when listeners is non-empty.
+    cert_manager_issuer = optional(string)                  # Override default cert-manager issuer
     # Which ListenerSets are allowed to attach to this Gateway. Maps to
     # spec.allowedListeners.namespaces.from on the Gateway resource.
     # Possible values:

@@ -182,9 +182,12 @@ resource "kubectl_manifest" "gateway" {
       name      = each.key
       namespace = var.namespace
       annotations = merge(
-        {
+        # Only request a cert-manager-issued cert when the caller has
+        # actually declared per-host listeners. In ListenerSet-only mode
+        # (listeners = []) each chart owns its own ListenerSet + cert.
+        length(each.value.listeners) > 0 ? {
           "cert-manager.io/cluster-issuer" = coalesce(each.value.cert_manager_issuer, var.cert_manager_cluster_issuer)
-        },
+        } : {},
         each.value.gateway_annotations,
       )
     }
@@ -201,7 +204,7 @@ resource "kubectl_manifest" "gateway" {
           from = each.value.allowed_listeners_from
         }
       }
-      listeners = concat(
+      listeners = length(each.value.listeners) > 0 ? concat(
         # HTTP listeners
         [
           for listener in each.value.listeners : {
@@ -233,14 +236,35 @@ resource "kubectl_manifest" "gateway" {
             }
           }
         ]
-      )
+        ) : [
+        # Anchor listener: the Gateway API CRD enforces listeners.minItems=1,
+        # so a ListenerSet-only Gateway still needs one inline listener.
+        # `anchor-http` is HTTP-only, port 80, no hostname filter — it acts
+        # as the landing point for ACME HTTP-01 challenges issued for hosts
+        # served by attached ListenerSets, and as a low-precedence catch-all
+        # for any traffic not matched by a ListenerSet's specific hostname.
+        {
+          name     = "anchor-http"
+          protocol = "HTTP"
+          port     = 80
+          allowedRoutes = {
+            namespaces = { from = "All" }
+          }
+        }
+      ]
     }
   })
 }
 
-# HTTPRoute for HTTPS redirect for each gateway
+# HTTPRoute for HTTPS redirect for each gateway. Skipped for
+# ListenerSet-only Gateways (no per-host listeners → nothing to redirect
+# at Gateway level; each app can ship its own HTTP->HTTPS HTTPRoute
+# alongside its ListenerSet if it wants the redirect behaviour).
 resource "kubectl_manifest" "httproute_redirect" {
-  for_each   = local.enabled_gateways
+  for_each = {
+    for gw_name, gw in local.enabled_gateways : gw_name => gw
+    if length(gw.listeners) > 0
+  }
   depends_on = [kubectl_manifest.gateway]
 
   yaml_body = yamlencode({
