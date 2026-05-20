@@ -204,8 +204,14 @@ resource "kubectl_manifest" "gateway" {
           from = each.value.allowed_listeners_from
         }
       }
-      listeners = length(each.value.listeners) > 0 ? concat(
-        # HTTP listeners
+      # listeners is built as a single concat() of three arms so the
+      # result type is always list(object) regardless of the per-arm
+      # element count. Avoids a ternary whose two branches statically
+      # infer to tuples of different lengths — which Tofu 1.12+ rejects
+      # with "Inconsistent conditional result types" on clusters whose
+      # `listeners` is a statically-known 1-element list.
+      listeners = concat(
+        # HTTP listeners (empty when listeners=[])
         [
           for listener in each.value.listeners : {
             name     = "http-${listener.name}"
@@ -217,7 +223,7 @@ resource "kubectl_manifest" "gateway" {
             }
           }
         ],
-        # HTTPS listeners
+        # HTTPS listeners (empty when listeners=[])
         [
           for listener in each.value.listeners : {
             name     = "https-${listener.name}"
@@ -235,23 +241,28 @@ resource "kubectl_manifest" "gateway" {
               namespaces = { from = "All" }
             }
           }
-        ]
-        ) : [
-        # Anchor listener: the Gateway API CRD enforces listeners.minItems=1,
+        ],
+        # Anchor: synthesised only when no per-host listeners are
+        # declared. The Gateway API CRD enforces listeners.minItems=1,
         # so a ListenerSet-only Gateway still needs one inline listener.
-        # `anchor-http` is HTTP-only, port 80, no hostname filter — it acts
-        # as the landing point for ACME HTTP-01 challenges issued for hosts
-        # served by attached ListenerSets, and as a low-precedence catch-all
-        # for any traffic not matched by a ListenerSet's specific hostname.
-        {
-          name     = "anchor-http"
-          protocol = "HTTP"
-          port     = 80
-          allowedRoutes = {
-            namespaces = { from = "All" }
+        # `anchor-http` (HTTP/80, no hostname filter) doubles as the
+        # landing point for ACME HTTP-01 challenges issued for hosts
+        # served by attached ListenerSets, and as a low-precedence
+        # catch-all for traffic that isn't matched by a ListenerSet's
+        # specific hostname. range() is used to make the comprehension
+        # iterate 0 or 1 times — keeps the result a list(object)
+        # without tripping tofu's tuple-length type inference.
+        [
+          for _ in range(length(each.value.listeners) == 0 ? 1 : 0) : {
+            name     = "anchor-http"
+            protocol = "HTTP"
+            port     = 80
+            allowedRoutes = {
+              namespaces = { from = "All" }
+            }
           }
-        }
-      ]
+        ]
+      )
     }
   })
 }
