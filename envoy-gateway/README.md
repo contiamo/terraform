@@ -153,6 +153,35 @@ module "envoy_gateway" {
 | tls_secret_suffix | TLS secret suffix pattern | `string` | `"-tls-{idx}"` |
 | cert_manager_issuer | Override default issuer | `string` | null |
 | allowed_listeners_from | Which ListenerSets may attach to this Gateway (`spec.allowedListeners.namespaces.from`). One of `All`, `Same`, `None`. Default `All` so chart authors can ship ListenerSets in their own namespace. The Gateway API spec default is `None`. | `string` | `"All"` |
+| topology_spread_constraints | Pod topology spread constraints applied to the Envoy proxy pods for this gateway. Renders to `spec.provider.kubernetes.envoyDeployment.pod.topologySpreadConstraints` on the EnvoyProxy CR. See [Topology Spread Constraints](#topology-spread-constraints) below. | `list(object)` | strict zonal spread (see below) |
+
+#### Topology Spread Constraints
+
+The module default is a single strict zonal spread:
+
+```hcl
+topology_spread_constraints = [{
+  max_skew           = 1
+  topology_key       = "topology.kubernetes.io/zone"
+  when_unsatisfiable = "DoNotSchedule"
+  # label_selector auto-derived to match this gateway's pods
+}]
+```
+
+With the typical 2-replicas × 3-AZs Contiamo setup this guarantees each replica lands in a different AZ. The failure mode that prompted this field: both Envoy replicas landing in the same AZ during a node-churn, where the cluster's LB only served a subset of AZs — the same-AZ replica then wasn't registered as a target because its AZ wasn't enabled on the LB, and only one replica was carrying production traffic.
+
+`label_selector` is optional per constraint. When `null`, the module sets `matchLabels: { "gateway.envoyproxy.io/owning-gateway-name": "<gateway name>" }` so the constraint counts only pods belonging to this gateway — important when you have multiple gateways (e.g. `envoy-public` + `envoy-tailscale`) in the same namespace.
+
+Per-constraint fields:
+
+| Field | Description | Default |
+|-------|-------------|---------|
+| max_skew | Maximum skew between domains | required |
+| topology_key | Node label to spread over (e.g. `topology.kubernetes.io/zone`) | required |
+| when_unsatisfiable | `DoNotSchedule` (strict, pod stays Pending) or `ScheduleAnyway` (soft hint) | required |
+| label_selector.match_labels | Override the auto-derived label selector | derived |
+
+Set `topology_spread_constraints = []` to opt out of spread entirely.
 
 ### Listener Object
 

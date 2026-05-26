@@ -106,10 +106,10 @@ variable "gateways" {
       name            = string           # Listener name suffix (e.g., "ctmo" -> "http-ctmo", "https-ctmo")
       tls_secret_name = optional(string) # Override the auto-generated TLS secret name. Use when reusing a Secret managed elsewhere (e.g. by an existing nginx Ingress) to avoid a fresh ACME issuance during cutover. If unset, the secret name is derived from `tls_secret_suffix`.
     })), [])
-    lb_annotations      = map(string)                       # LoadBalancer service annotations
-    gateway_annotations = optional(map(string), {})         # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation when listeners is non-empty)
-    tls_secret_suffix   = optional(string, "-tls-{idx}")    # TLS secret suffix pattern. Only consumed when listeners is non-empty.
-    cert_manager_issuer = optional(string)                  # Override default cert-manager issuer
+    lb_annotations      = map(string)                    # LoadBalancer service annotations
+    gateway_annotations = optional(map(string), {})      # Extra annotations applied to the Gateway resource (merged with the cert-manager annotation when listeners is non-empty)
+    tls_secret_suffix   = optional(string, "-tls-{idx}") # TLS secret suffix pattern. Only consumed when listeners is non-empty.
+    cert_manager_issuer = optional(string)               # Override default cert-manager issuer
     # Which ListenerSets are allowed to attach to this Gateway. Maps to
     # spec.allowedListeners.namespaces.from on the Gateway resource.
     # Possible values:
@@ -125,6 +125,38 @@ variable "gateways" {
     # SNI hostname matching still applies regardless of this setting, so a
     # ListenerSet can't hijack an already-served hostname.
     allowed_listeners_from = optional(string, "All")
+    # Pod topology spread constraints applied to the Envoy proxy pods for
+    # this gateway. Renders to
+    # `spec.provider.kubernetes.envoyDeployment.pod.topologySpreadConstraints`
+    # on the EnvoyProxy CR.
+    #
+    # The module default is a single strict zonal spread (maxSkew=1,
+    # topologyKey=topology.kubernetes.io/zone, whenUnsatisfiable=
+    # DoNotSchedule). With the typical 2-replicas-across-3-AZs Contiamo
+    # setup this guarantees each replica lands in a different AZ — the
+    # failure mode that prompted this field was both Envoy replicas
+    # landing in the same AZ during a node-churn, where the cluster's LB
+    # only served a subset of AZs and the same-AZ replica was the one
+    # not registered as a target. Set to `[]` to disable spread entirely.
+    #
+    # `label_selector` is optional: when null, defaults to
+    # `gateway.envoyproxy.io/owning-gateway-name = <gateway name>` so the
+    # constraint only counts pods belonging to this gateway and doesn't
+    # interact with other gateways' proxies in the same namespace.
+    topology_spread_constraints = optional(list(object({
+      max_skew           = number
+      topology_key       = string # e.g. "topology.kubernetes.io/zone"
+      when_unsatisfiable = string # "DoNotSchedule" or "ScheduleAnyway"
+      label_selector = optional(object({
+        match_labels = optional(map(string))
+      }))
+      })), [
+      {
+        max_skew           = 1
+        topology_key       = "topology.kubernetes.io/zone"
+        when_unsatisfiable = "DoNotSchedule"
+      }
+    ])
   }))
 
   validation {
@@ -137,5 +169,15 @@ variable "gateways" {
       for g in var.gateways : contains(["All", "Same", "None"], g.allowed_listeners_from)
     ])
     error_message = "allowed_listeners_from must be one of: All, Same, None. (The Gateway API spec also defines Selector, but this module doesn't yet expose the selector field.)"
+  }
+
+  validation {
+    condition = alltrue([
+      for g in var.gateways : alltrue([
+        for tsc in g.topology_spread_constraints :
+        contains(["DoNotSchedule", "ScheduleAnyway"], tsc.when_unsatisfiable)
+      ])
+    ])
+    error_message = "topology_spread_constraints[*].when_unsatisfiable must be one of: DoNotSchedule, ScheduleAnyway."
   }
 }
