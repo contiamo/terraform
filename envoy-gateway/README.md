@@ -183,6 +183,29 @@ Per-constraint fields:
 
 Set `topology_spread_constraints = []` to opt out of spread entirely.
 
+Override example — soften to a hint plus add a per-node spread on top of the per-zone one:
+
+```hcl
+gateways = [
+  {
+    name = "envoy-public"
+    # ...
+    topology_spread_constraints = [
+      {
+        max_skew           = 1
+        topology_key       = "topology.kubernetes.io/zone"
+        when_unsatisfiable = "ScheduleAnyway"   # relax from default DoNotSchedule
+      },
+      {
+        max_skew           = 1
+        topology_key       = "kubernetes.io/hostname"
+        when_unsatisfiable = "ScheduleAnyway"
+      },
+    ]
+  },
+]
+```
+
 ### Listener Object
 
 | Field | Description | Default |
