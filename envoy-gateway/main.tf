@@ -154,9 +154,31 @@ resource "kubectl_manifest" "envoyproxy" {
       provider = {
         type = "Kubernetes"
         kubernetes = {
-          envoyDeployment = {
-            replicas = var.replicas
-          }
+          envoyDeployment = merge(
+            { replicas = var.replicas },
+            length(each.value.topology_spread_constraints) > 0 ? {
+              pod = {
+                topologySpreadConstraints = [
+                  for tsc in each.value.topology_spread_constraints : {
+                    maxSkew           = tsc.max_skew
+                    topologyKey       = tsc.topology_key
+                    whenUnsatisfiable = tsc.when_unsatisfiable
+                    # Caller-supplied labelSelector wins; otherwise scope
+                    # the constraint to this gateway's pods so it doesn't
+                    # count proxies belonging to other gateways in the
+                    # same namespace.
+                    labelSelector = tsc.label_selector != null && try(tsc.label_selector.match_labels, null) != null ? {
+                      matchLabels = tsc.label_selector.match_labels
+                      } : {
+                      matchLabels = {
+                        "gateway.envoyproxy.io/owning-gateway-name" = each.key
+                      }
+                    }
+                  }
+                ]
+              }
+            } : {},
+          )
           envoyService = {
             type        = "LoadBalancer"
             annotations = each.value.lb_annotations
