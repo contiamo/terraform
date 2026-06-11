@@ -37,7 +37,7 @@ Deploys [Karpenter](https://karpenter.sh/) — the just-in-time Kubernetes node 
 module "karpenter_chart" {
   source = "github.com/contiamo/terraform?ref=karpenter/v1.0.0"
 
-  chart_version = "1.12.1"
+  chart_version = "1.13.0"
 
   cluster_name             = module.eks.cluster_name
   cluster_endpoint         = module.eks.cluster_endpoint
