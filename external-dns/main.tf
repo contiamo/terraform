@@ -35,6 +35,9 @@ resource "aws_iam_policy" "policy" {
 
 module "iam_eks_role" {
   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  # Pin to v5.x: v6 renamed this submodule (dropped the `-eks` suffix) and
+  # changed its interface, so the unpinned reference broke on fresh init.
+  version = "~> 5.0"
 
   role_name = var.project_name
   role_policy_arns = {
@@ -63,50 +66,48 @@ moved {
 }
 
 resource "helm_release" "external_dns" {
-  depends_on       = [kubernetes_service_account_v1.external_dns]
-  provider         = helm
-  name             = "external-dns"
-  repository       = "oci://registry-1.docker.io/bitnamicharts"
+  depends_on = [kubernetes_service_account_v1.external_dns]
+  provider   = helm
+  name       = "external-dns"
+  # Official kubernetes-sigs chart (was the Bitnami chart, whose images moved
+  # to the unmaintained `bitnamilegacy` catalogue in Aug 2025). Same release
+  # name, so this is an in-place `helm upgrade` — external-dns is stateless and
+  # Route 53 records persist; the new release adopts the existing records via
+  # the unchanged `txtOwnerId` (= hosted_zone_id) in the TXT ownership registry.
+  repository       = "https://kubernetes-sigs.github.io/external-dns"
   chart            = "external-dns"
+  version          = var.helm_chart_version
   namespace        = var.k8s_namespace
   max_history      = 3
   timeout          = 600
   create_namespace = true
   wait             = true
   wait_for_jobs    = true
-  reset_values     = true
-  set {
-    name  = "provider"
-    value = "aws"
-  }
+  reset_values     = true # chart swap: start from sigs chart defaults, not leftover Bitnami values
 
-  set {
-    name  = "aws.region"
-    value = var.aws_region
-  }
-
-  set {
-    name  = "txtOwnerId"
-    value = var.hosted_zone_id
-  }
-
-  set {
-    name  = "domainFilters[0]"
-    value = var.aws_route53_domain
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "external-dns"
-  }
-
-  set {
-    name  = "serviceAccount.create"
-    value = "false"
-  }
-
-  set {
-    name  = "policy"
-    value = "sync"
-  }
+  values = [
+    yamlencode({
+      provider = { name = "aws" }
+      policy   = "sync"
+      registry = "txt"
+      # Keep the TXT ownership id identical to the Bitnami deployment so the
+      # new external-dns recognises and continues managing the existing records.
+      txtOwnerId    = var.hosted_zone_id
+      domainFilters = [var.aws_route53_domain]
+      serviceAccount = {
+        # The module manages the ServiceAccount (with the IRSA annotation), so
+        # the chart must not create its own.
+        create = false
+        name   = "external-dns"
+      }
+      # The sigs chart has no `aws.region` value; pass the region via env.
+      # (external-dns also auto-detects it from IMDS/STS if omitted.)
+      env = [
+        {
+          name  = "AWS_DEFAULT_REGION"
+          value = var.aws_region
+        },
+      ]
+    })
+  ]
 }
