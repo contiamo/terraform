@@ -9,6 +9,7 @@
 # for the daily update-karpenter workflow to open a PR).
 locals {
   supported_versions = [
+    "1.13.0",
     "1.12.1",
     "1.12.0",
   ]
