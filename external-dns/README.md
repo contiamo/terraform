@@ -1,6 +1,6 @@
-# Tailscale Module
+# External DNS Module
 
-This module installs a [Exteranal DNS](https://github.com/kubernetes-sigs/external-dns) EKS addon.
+This module installs an [External DNS](https://github.com/kubernetes-sigs/external-dns) EKS addon.
 
 External DNS can be used to manage Service and Ingress DNS records automatically using Route53.
 
