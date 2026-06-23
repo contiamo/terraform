@@ -88,7 +88,7 @@ resource "helm_release" "loki" {
   values = [
     templatefile(local.loki_values_template,
       {
-        LOKI_BUCKET_AWS_REGION                = data.aws_region.current.id,
+        LOKI_BUCKET_AWS_REGION                = data.aws_region.current.region,
         LOKI_STORAGE_BUCKET_NAME              = aws_s3_bucket.loki_storage.id,
         LOKI_STORAGE_BUCKET_SECRET_ACCESS_KEY = var.loki_storage_bucket_secret_access_key,
         LOKI_STORAGE_BUCKET_ACCESS_KEY_ID     = var.loki_storage_bucket_access_key_id,
