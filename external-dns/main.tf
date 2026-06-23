@@ -1,3 +1,5 @@
+# IAM policy granting the external-dns service account permission to
+# manage records in the target Route53 hosted zone.
 resource "aws_iam_policy" "policy" {
   name        = var.project_name
   path        = "/"
