@@ -22,3 +22,8 @@ variable "aws_route53_domain" {
   type        = string
   description = "Domain to use with EKS External DNS addon"
 }
+variable "helm_chart_version" {
+  type        = string
+  description = "Version of the kubernetes-sigs external-dns Helm chart (https://kubernetes-sigs.github.io/external-dns). Chart 1.21.1 ships external-dns app v0.21.0."
+  default     = "1.21.1"
+}
