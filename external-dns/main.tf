@@ -9,22 +9,22 @@ resource "aws_iam_policy" "policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        "Effect": "Allow",
-        "Action": [
+        "Effect" : "Allow",
+        "Action" : [
           "route53:ChangeResourceRecordSets"
         ],
-        "Resource": [
-            "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
+        "Resource" : [
+          "arn:aws:route53:::hostedzone/${var.hosted_zone_id}"
         ]
       },
-        {
-        "Effect": "Allow",
-        "Action": [
-            "route53:ListHostedZones",
-            "route53:ListResourceRecordSets"
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "route53:ListHostedZones",
+          "route53:ListResourceRecordSets"
         ],
-        "Resource": [
-            "*"
+        "Resource" : [
+          "*"
         ]
       },
     ]
@@ -32,7 +32,7 @@ resource "aws_iam_policy" "policy" {
 }
 
 module "iam_eks_role" {
-  source    = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
+  source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
 
   role_name = var.project_name
   role_policy_arns = {
@@ -47,7 +47,7 @@ module "iam_eks_role" {
 }
 resource "kubernetes_service_account_v1" "external_dns" {
   metadata {
-    name = "external-dns"
+    name      = "external-dns"
     namespace = var.k8s_namespace
     annotations = {
       "eks.amazonaws.com/role-arn" = "${module.iam_eks_role.iam_role_arn}"
@@ -55,8 +55,13 @@ resource "kubernetes_service_account_v1" "external_dns" {
   }
 }
 
-resource "helm_release" "property_validation" {
-  depends_on = [ kubernetes_service_account_v1.external_dns ]
+moved {
+  from = helm_release.property_validation
+  to   = helm_release.external_dns
+}
+
+resource "helm_release" "external_dns" {
+  depends_on       = [kubernetes_service_account_v1.external_dns]
   provider         = helm
   name             = "external-dns"
   repository       = "oci://registry-1.docker.io/bitnamicharts"

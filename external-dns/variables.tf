@@ -1,7 +1,7 @@
 variable "project_name" {
   type        = string
   description = "Project name. All the resources will be given this name"
-  default = "external-dns"
+  default     = "external-dns"
 }
 variable "provider_arn" {
   type        = string
@@ -19,6 +19,6 @@ variable "aws_region" {
   type = string
 }
 variable "aws_route53_domain" {
-  type = string
+  type        = string
   description = "Domain to use with EKS External DNS addon"
 }
