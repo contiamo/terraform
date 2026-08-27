@@ -4,6 +4,15 @@ locals {
   loki_values_template            = local.is_eks ? "${path.module}/assets/helm-values-loki.tpl" : "${path.module}/assets/helm-values-loki-non-eks.tpl"
   loki_role_arn                   = local.is_eks ? module.loki_service_account_role[0].arn : ""
   web_endpoint_monitoring_webhook = var.alert_manager_slack_webhook_url_web_endpoint_monitoring != "" ? var.alert_manager_slack_webhook_url_web_endpoint_monitoring : var.alert_manager_slack_webhook_url
+
+  # Mirror the chart's own sizing rule -- round(allocatedMemory * 1.2), which it
+  # implements in integer arithmetic as div (add (mul x 12) 5) 10 -- rather
+  # than letting the caller set memcached's `-m` and the container memory limit
+  # independently. Setting `resources` in the chart replaces the whole block, so
+  # an inconsistent pair (say -m 1024 with a 256Mi limit) would OOMKill the
+  # cache on first fill. Deriving it here makes that impossible.
+  loki_chunks_cache_memory_mi  = floor((var.loki_chunks_cache_allocated_memory_mb * 12 + 5) / 10)
+  loki_results_cache_memory_mi = floor((var.loki_results_cache_allocated_memory_mb * 12 + 5) / 10)
 }
 
 # Prep. namespace:
@@ -88,13 +97,19 @@ resource "helm_release" "loki" {
   values = [
     templatefile(local.loki_values_template,
       {
-        LOKI_BUCKET_AWS_REGION                = data.aws_region.current.region,
-        LOKI_STORAGE_BUCKET_NAME              = aws_s3_bucket.loki_storage.id,
-        LOKI_STORAGE_BUCKET_SECRET_ACCESS_KEY = var.loki_storage_bucket_secret_access_key,
-        LOKI_STORAGE_BUCKET_ACCESS_KEY_ID     = var.loki_storage_bucket_access_key_id,
-        LOKI_STORAGE_CLASS_NAME               = var.loki_storage_class_name,
-        LOKI_SVC_ACCOUNT_NAME                 = local.loki_svc_account_name,
-        LOKI_SVC_ACCOUNT_IAM_ROLE_ARN         = local.loki_role_arn,
+        LOKI_BUCKET_AWS_REGION                 = data.aws_region.current.region,
+        LOKI_STORAGE_BUCKET_NAME               = aws_s3_bucket.loki_storage.id,
+        LOKI_STORAGE_BUCKET_SECRET_ACCESS_KEY  = var.loki_storage_bucket_secret_access_key,
+        LOKI_STORAGE_BUCKET_ACCESS_KEY_ID      = var.loki_storage_bucket_access_key_id,
+        LOKI_STORAGE_CLASS_NAME                = var.loki_storage_class_name,
+        LOKI_SVC_ACCOUNT_NAME                  = local.loki_svc_account_name,
+        LOKI_SVC_ACCOUNT_IAM_ROLE_ARN          = local.loki_role_arn,
+        LOKI_CHUNKS_CACHE_ALLOCATED_MEMORY_MB  = var.loki_chunks_cache_allocated_memory_mb,
+        LOKI_CHUNKS_CACHE_MEMORY_MI            = local.loki_chunks_cache_memory_mi,
+        LOKI_CHUNKS_CACHE_CPU_REQUEST          = var.loki_chunks_cache_cpu_request,
+        LOKI_RESULTS_CACHE_ALLOCATED_MEMORY_MB = var.loki_results_cache_allocated_memory_mb,
+        LOKI_RESULTS_CACHE_MEMORY_MI           = local.loki_results_cache_memory_mi,
+        LOKI_RESULTS_CACHE_CPU_REQUEST         = var.loki_results_cache_cpu_request,
       }
     )
   ]
@@ -142,6 +157,7 @@ resource "helm_release" "monitoring" {
     templatefile("${path.module}/assets/helm-values-monitoring.tpl",
       {
         GRAFANA_PVC_SIZE                                        = var.grafana_pvc_size,
+        GRAFANA_RESOURCES                                       = yamlencode(var.grafana_resources),
         GRAFANA_PVC_STORAGE_CLASS                               = var.grafana_pvc_storage_class,
         GRAFANA_GATEWAY_NAME                                    = var.grafana_gateway_parent_ref.name,
         GRAFANA_GATEWAY_NAMESPACE                               = var.grafana_gateway_parent_ref.namespace,

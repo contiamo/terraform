@@ -27,3 +27,24 @@ lokiCanary:
     - key: "karpenter.sh/disrupted"
       operator: "Exists"
       effect: "NoSchedule"
+
+# Cache sizing. The chart's defaults (8192 MB chunks / 1024 MB results) are
+# tuned for high-volume deployments; `resources` is set explicitly here because
+# leaving it null makes the chart hardcode a 500m CPU request per cache.
+# The memory figures are derived by the module from allocatedMemory.
+chunksCache:
+  allocatedMemory: ${LOKI_CHUNKS_CACHE_ALLOCATED_MEMORY_MB}
+  resources:
+    requests:
+      cpu: ${LOKI_CHUNKS_CACHE_CPU_REQUEST}
+      memory: ${LOKI_CHUNKS_CACHE_MEMORY_MI}Mi
+    limits:
+      memory: ${LOKI_CHUNKS_CACHE_MEMORY_MI}Mi
+resultsCache:
+  allocatedMemory: ${LOKI_RESULTS_CACHE_ALLOCATED_MEMORY_MB}
+  resources:
+    requests:
+      cpu: ${LOKI_RESULTS_CACHE_CPU_REQUEST}
+      memory: ${LOKI_RESULTS_CACHE_MEMORY_MI}Mi
+    limits:
+      memory: ${LOKI_RESULTS_CACHE_MEMORY_MI}Mi

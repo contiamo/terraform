@@ -93,12 +93,7 @@ grafana:
           namespace: ${GRAFANA_GATEWAY_NAMESPACE}
           sectionName: ${GRAFANA_GATEWAY_SECTION}
   resources:
-   limits:
-     cpu: 500m
-     memory: 2Gi
-   requests:
-     cpu: 500m
-     memory: 2Gi
+    ${indent(4, GRAFANA_RESOURCES)}
   readinessProbe:
     httpGet:
       path: /api/health
