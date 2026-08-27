@@ -1,4 +1,25 @@
 loki:
+  # Ring write quorum is floor(replication_factor/2)+1. This deployment runs
+  # write.replicas: 2 (see below), and the chart ships replication_factor: 3,
+  # which makes the quorum 2 -- so there is no headroom: every rolling restart
+  # or node drain takes one ingester out, leaves a single live replica, and
+  # writes fail with "at least 2 live replicas required", losing logs.
+  #
+  # replication_factor: 1 makes the quorum 1, so writes survive one ingester
+  # being away. The alternative, write.replicas: 3, does not work on a
+  # two-node cluster: the chart applies HARD pod anti-affinity
+  # (requiredDuringScheduling, topologyKey kubernetes.io/hostname), so the
+  # third pod is unschedulable and the cluster autoscaler would provision an
+  # extra node to satisfy it.
+  #
+  # Trade-off accepted: each log line is held by one ingester rather than
+  # replicated. A graceful drain flushes on shutdown and the WAL on the PVC
+  # covers restart, so the exposure is an ungraceful loss of an ingester with
+  # unflushed chunks. Acceptable for internal observability.
+  #
+  # KEEP THIS CONSISTENT WITH write.replicas BELOW.
+  commonConfig:
+    replication_factor: 1
   persistence:
     enabled: true
     storageClassName: ${LOKI_STORAGE_CLASS_NAME}
