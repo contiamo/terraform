@@ -234,3 +234,69 @@ variable "grafana_extra_dashboard_providers" {
   }))
   default = []
 }
+
+########################################
+# Resource sizing
+#
+# The Loki chart ships caches sized for a high-volume deployment: chunksCache
+# defaults to 8192 MB and resultsCache to 1024 MB, and the chart derives the
+# memcached memory request/limit as floor(allocatedMemory * 1.2) while
+# hardcoding a 500m CPU request. On a small cluster that reserves ~11 GiB of
+# memory and 1 vCPU for two caches, which is often more than every application
+# workload combined. These variables make the sizing explicit.
+#
+# Defaults below reproduce the chart's own defaults, so adopting a module
+# version that includes them changes nothing until a caller opts in.
+########################################
+
+variable "loki_chunks_cache_allocated_memory_mb" {
+  description = "Memory in MB handed to the Loki chunks-cache memcached (its `-m` flag). The module derives the container memory request/limit from this as floor(x * 1.2), matching the chart's formula. Chart default is 8192; check `memcached_current_bytes` on the exporter before lowering it."
+  type        = number
+  default     = 8192
+
+  validation {
+    condition     = var.loki_chunks_cache_allocated_memory_mb >= 64
+    error_message = "Below ~64 MB memcached thrashes and the cache stops being useful."
+  }
+}
+
+variable "loki_chunks_cache_cpu_request" {
+  description = "CPU request for the Loki chunks-cache memcached container. The chart hardcodes 500m, which these caches do not come close to using."
+  type        = string
+  default     = "500m"
+}
+
+variable "loki_results_cache_allocated_memory_mb" {
+  description = "Memory in MB handed to the Loki results-cache memcached (its `-m` flag). Derived request/limit as per loki_chunks_cache_allocated_memory_mb. Chart default is 1024."
+  type        = number
+  default     = 1024
+
+  validation {
+    condition     = var.loki_results_cache_allocated_memory_mb >= 64
+    error_message = "Below ~64 MB memcached thrashes and the cache stops being useful."
+  }
+}
+
+variable "loki_results_cache_cpu_request" {
+  description = "CPU request for the Loki results-cache memcached container. The chart hardcodes 500m."
+  type        = string
+  default     = "500m"
+}
+
+variable "grafana_resources" {
+  description = "Resource requests and limits for the Grafana container. The default reproduces what this module previously hardcoded (500m / 2Gi on both sides)."
+  type = object({
+    requests = object({
+      cpu    = string
+      memory = string
+    })
+    limits = object({
+      cpu    = string
+      memory = string
+    })
+  })
+  default = {
+    requests = { cpu = "500m", memory = "2Gi" }
+    limits   = { cpu = "500m", memory = "2Gi" }
+  }
+}
