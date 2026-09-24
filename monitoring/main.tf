@@ -204,7 +204,7 @@ resource "helm_release" "grafana_alloy" {
   name       = "alloy-v1"
   repository = "https://grafana.github.io/helm-charts"
   chart      = "alloy"
-  version    = "1.0.2"
+  version    = "1.12.1"
   namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
   values = [
     <<-EOT
