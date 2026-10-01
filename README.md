@@ -29,6 +29,7 @@ Notes:
 | Module | Purpose |
 |---|---|
 | [azure-openai](./azure-openai) | Azure OpenAI Cognitive Services with private endpoints |
+| [coder](./coder) | Coder remote development environments (control plane, external Postgres, Gateway API) |
 | [datahub](./datahub) | DataHub metadata platform deployment via Helm |
 | [ecr-pull-helper](./ecr-pull-helper) | ECR pull-through credential refresher for non-AWS clusters |
 | [elasticsearch](./elasticsearch) | Elasticsearch cluster setup |
