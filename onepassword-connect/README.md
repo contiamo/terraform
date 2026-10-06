@@ -29,7 +29,7 @@ Deploys the [1Password Connect Helm chart](https://github.com/1Password/connect-
 module "onepassword_connect" {
   source = "github.com/contiamo/terraform?ref=onepassword-connect/v1.0.0"
 
-  chart_version = "2.4.1"
+  chart_version = "2.4.2"
   namespace     = "1password"
 
   install_connect_server = true
@@ -55,7 +55,7 @@ Use this when the cluster should read secrets from 1Password without running a C
 module "onepassword_operator" {
   source = "github.com/contiamo/terraform?ref=onepassword-connect/v1.0.0"
 
-  chart_version = "2.4.1"
+  chart_version = "2.4.2"
   namespace     = "1password"
 
   install_connect_server = false
@@ -70,7 +70,7 @@ module "onepassword_operator" {
 
 | Name                            | Description                                                                     | Type     | Default            | Required |
 | ------------------------------- | ------------------------------------------------------------------------------- | -------- | ------------------ | :------: |
-| chart_version                   | 1Password Connect Helm chart version                                            | `string` | `"2.4.1"`          |    no    |
+| chart_version                   | 1Password Connect Helm chart version                                            | `string` | `"2.4.2"`          |    no    |
 | namespace                       | Kubernetes namespace                                                            | `string` | `"1password"`      |    no    |
 | release_name                    | Helm release name                                                               | `string` | `"connect-server"` |    no    |
 | install_connect_server          | Deploy the Connect server                                                       | `bool`   | `true`             |    no    |
