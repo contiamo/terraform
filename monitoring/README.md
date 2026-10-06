@@ -11,6 +11,7 @@ The stack assumes:
 
 - Gateway API + Envoy Gateway are already installed on the cluster (use the `envoy-gateway` and `gateway-api-crds` modules).
 - A Gateway resource exists with HTTPS listener sections that the caller can reference for Grafana and Alertmanager.
+- `grafana_host` and `alert_manager_host` are the public hostnames served by those HTTPRoutes. Grafana's `server.root_url` and Alertmanager's `externalUrl` follow them, so OAuth redirects, Slack alert links and the Silence button resolve publicly instead of pointing at the in-cluster Service.
 
 ## EKS usage
 

@@ -126,6 +126,12 @@ defaultRules:
 alertmanager:
   ingress:
     enabled: false
+  alertmanagerSpec:
+    # Public URL Alertmanager advertises in notifications. Without it the
+    # Slack title link and the Silence button (.ExternalURL) point at the
+    # in-cluster Service URL. Follows var.alert_manager_host, like Grafana's
+    # server.root_url follows var.grafana_host.
+    externalUrl: https://${ALERT_MANAGER_HOST}
   route:
     main:
       enabled: true
