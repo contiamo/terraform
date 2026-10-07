@@ -243,10 +243,7 @@ alertmanager:
         receiver: "null"
       - match:
           alertname: HeartBeat
-        receiver: 'null'
-        group_wait: 0s
-        group_interval: 50s
-        repeat_interval: 40s
+        receiver: "null"
     templates:
     - '/etc/alertmanager/config/*.tmpl'
 
@@ -456,7 +453,6 @@ additionalPrometheusRulesMap:
         - alert: HeartBeat
           annotations:
             message: "Heartbeat alert from Prometheus. *Runbook Link*: <https://github.com/contiamo/cole#how-does-it-work|:notebook_with_decorative_cover:>"
-            environment: "ENV_SLUG_PLACEHOLDER"
           expr: vector(1)
           labels:
             severity: none
