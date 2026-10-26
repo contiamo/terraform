@@ -22,6 +22,16 @@ loki:
         index:
           prefix: index_ # any value without spaces is acceptable.
           period: 24h # must be 24h.
+  # Enables the log deletion API (/loki/api/v1/delete). The API only exists when
+  # retention is enabled; retention_period 0s keeps logs forever, so nothing is
+  # removed unless a delete request is submitted.
+  # https://grafana.com/docs/loki/latest/operations/storage/logs-deletion/
+  compactor:
+    retention_enabled: true
+    delete_request_store: s3
+  limits_config:
+    retention_period: 0s
+    deletion_mode: filter-and-delete
 lokiCanary:
   tolerations:
     - key: "karpenter.sh/disrupted"
