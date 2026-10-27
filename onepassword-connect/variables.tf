@@ -12,7 +12,7 @@ variable "chart_version" {
     https://github.com/1Password/connect-helm-charts
   EOT
   type        = string
-  default     = "2.4.1"
+  default     = "2.4.2"
 }
 
 variable "namespace" {
