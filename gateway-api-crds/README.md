@@ -38,3 +38,27 @@ The script downloads the standard-install YAML and bumps the default in
 `variables.tf` and the example in this README. No manual key tracking is
 needed — the module parses the YAML at plan time and derives `for_each`
 keys from `<kind>/<metadata.name>`.
+
+## Envoy Gateway compatibility (check before merging or bumping)
+
+Envoy Gateway is the Gateway API controller on every cluster that uses this
+module. Each Envoy Gateway release is compiled and tested against exactly one
+Gateway API version: the bold "Gateway API version" column in the
+[compatibility matrix](https://gateway.envoyproxy.io/news/releases/matrix/),
+which is also the `sigs.k8s.io/gateway-api` pin in Envoy Gateway's `go.mod`.
+
+Rules:
+
+- Do not merge a new CRD minor (v1.N) until an Envoy Gateway release is built
+  against it.
+- Do not move a cluster to a new CRD minor until that cluster runs such an
+  Envoy Gateway release. The `envoy-gateway` module and this one are bumped
+  separately, so check both pins.
+- Rolling back is not a plain revert. From v1.7.0 the bundle installs the
+  `safe-upgrades.gateway.networking.k8s.io` ValidatingAdmissionPolicy, which
+  rejects any CRD bundle older than the installed minor. Going back means
+  deleting that policy first.
+
+The `update-gateway-api-crds` workflow checks the latest stable Envoy Gateway
+release and opens the PR as a draft, with a warning, when the new minor is not
+supported yet. It does not reopen a version whose PR was closed.
