@@ -8,8 +8,10 @@
 # What it does:
 #   1. Pulls the helm chart .tgz from oci://public.ecr.aws/karpenter at the
 #      given version, captures the OCI manifest digest as a sidecar.
-#   2. Downloads the four v1 CRD YAMLs from
-#      https://raw.githubusercontent.com/aws/karpenter-provider-aws/v<version>/pkg/apis/crds
+#   2. Extracts every CRD YAML from the chart's crds/ directory. Taking them
+#      from the .tgz rather than a fixed list means CRDs added in a new
+#      version (1.14 added autoscaling.x-k8s.io_capacitybuffers) are picked
+#      up automatically.
 #   3. Appends the version to locals.tf `supported_versions`.
 #   4. Updates the default in variables.tf.
 #   5. Updates the example and inputs table in README.md.
@@ -26,13 +28,6 @@ CRD_DIR="${MODULE_DIR}/crds/${VERSION}"
 LOCALS_FILE="${MODULE_DIR}/locals.tf"
 VARIABLES_FILE="${MODULE_DIR}/variables.tf"
 README_FILE="${MODULE_DIR}/README.md"
-
-CRDS=(
-  "karpenter.k8s.aws_ec2nodeclasses"
-  "karpenter.sh_nodeclaims"
-  "karpenter.sh_nodeoverlays"
-  "karpenter.sh_nodepools"
-)
 
 mkdir -p "${MODULE_DIR}/charts" "${CRD_DIR}"
 
@@ -64,11 +59,18 @@ echo "$DIGEST" > "$CHART_DIGEST_FILE"
 echo "Chart saved to ${CHART_FILE}"
 echo "Digest sidecar saved to ${CHART_DIGEST_FILE}"
 
-# ── 2. Download CRD YAMLs ───────────────────────────────────────────────────
-for crd in "${CRDS[@]}"; do
-  url="https://raw.githubusercontent.com/aws/karpenter-provider-aws/v${VERSION}/pkg/apis/crds/${crd}.yaml"
-  echo "Downloading ${crd}.yaml …"
-  curl -fsSL -o "${CRD_DIR}/${crd}.yaml" "$url"
+# ── 2. Extract CRD YAMLs from the chart ────────────────────────────────────
+echo "Extracting CRDs from ${CHART_FILE} …"
+tar -xzf "$CHART_FILE" -C "$TMPDIR" karpenter/crds
+shopt -s nullglob
+crd_yamls=("${TMPDIR}/karpenter/crds/"*.yaml)
+if [[ ${#crd_yamls[@]} -eq 0 ]]; then
+  echo "ERROR: no CRDs found in the chart's crds/ directory" >&2
+  exit 1
+fi
+for f in "${crd_yamls[@]}"; do
+  echo "  $(basename "$f")"
+  cp "$f" "${CRD_DIR}/"
 done
 
 # ── 3. Update locals.tf supported_versions ──────────────────────────────────

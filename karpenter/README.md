@@ -27,7 +27,7 @@ Deploys [Karpenter](https://karpenter.sh/) — the just-in-time Kubernetes node 
 > Each version commit includes:
 > * `charts/karpenter-<version>.tgz` — the helm chart pulled from OCI
 > * `charts/karpenter-<version>.tgz.sha256` — OCI manifest digest for audit
-> * `crds/<version>/*.yaml` — the four v1 CRDs at the matching git tag
+> * `crds/<version>/*.yaml` — every CRD in the chart's `crds/` directory, extracted from the `.tgz`
 >
 > Reviewers should diff the `.tgz` digest against what `helm pull` produces, and skim the CRD YAMLs for schema-breaking changes.
 
