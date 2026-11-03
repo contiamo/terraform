@@ -300,3 +300,37 @@ variable "grafana_resources" {
     limits   = { cpu = "500m", memory = "2Gi" }
   }
 }
+
+variable "prometheus_storage_size_gb" {
+  description = "Size in GiB of the Prometheus volume. Prometheus also gets a size-based retention of 90% of this figure (in GB), so it deletes the oldest data before the volume fills, whatever prometheus_retention says. 30 GiB holds about 30 days for a cluster with ~200k series."
+  type        = number
+  default     = 30
+
+  validation {
+    condition     = var.prometheus_storage_size_gb >= 5
+    error_message = "Use at least 5 GiB; below that the size-based retention leaves almost no history."
+  }
+}
+
+variable "prometheus_retention" {
+  description = "How long Prometheus keeps data, in Prometheus duration format (e.g. 30d, 12w). The size-based limit from prometheus_storage_size_gb applies as well; whichever is reached first wins."
+  type        = string
+  default     = "30d"
+}
+
+variable "prometheus_storage_class" {
+  description = "StorageClass for the Prometheus volume. Leave empty to use grafana_pvc_storage_class, and if that is empty too, the cluster's default StorageClass. Clusters without a default class (OTC CCE) therefore need one of the two set."
+  type        = string
+  default     = ""
+}
+
+variable "prometheus_resources" {
+  description = "Resource requests (and optional limits) for the Prometheus container. The default reserves roughly what Prometheus uses on our clusters (665-870 MiB, a few dozen millicores) and sets no limit, so large dashboard queries are not OOM-killed."
+  type = object({
+    requests = map(string)
+    limits   = optional(map(string), {})
+  })
+  default = {
+    requests = { cpu = "100m", memory = "1Gi" }
+  }
+}
