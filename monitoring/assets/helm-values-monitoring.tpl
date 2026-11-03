@@ -123,6 +123,26 @@ defaultRules:
     KubeletTooManyPods: true
     KubeProxyDown: true
 
+prometheus:
+  prometheusSpec:
+    # Without a volume the chart keeps the TSDB in an emptyDir, so every
+    # restart (each node replacement or consolidation) wiped the history.
+    retention: ${PROMETHEUS_RETENTION}
+    retentionSize: ${PROMETHEUS_RETENTION_SIZE}
+    resources:
+      ${indent(6, PROMETHEUS_RESOURCES)}
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+%{ if PROMETHEUS_STORAGE_CLASS != "" ~}
+          storageClassName: ${PROMETHEUS_STORAGE_CLASS}
+%{ endif ~}
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: ${PROMETHEUS_STORAGE_SIZE}
+
 alertmanager:
   ingress:
     enabled: false

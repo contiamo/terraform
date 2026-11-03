@@ -89,6 +89,17 @@ module "monitoring" {
 
 ## Optional features
 
+### Prometheus storage and retention
+
+Prometheus keeps its data on a persistent volume (`prometheus_storage_size_gb`, default 30 GiB) for `prometheus_retention` (default `30d`), and also stops at 90% of the volume size so the disk cannot fill. The volume uses `prometheus_storage_class`, falling back to `grafana_pvc_storage_class` and then to the cluster default. `prometheus_resources` sets its requests (default 100m CPU, 1Gi memory, no limits).
+
+```hcl
+prometheus_storage_size_gb = 60
+prometheus_retention       = "60d"
+```
+
+Before v1.4.0 the chart kept the data in an emptyDir, and every restart lost the history.
+
 ### Grafana plugins
 
 ```hcl

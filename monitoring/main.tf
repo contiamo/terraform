@@ -187,6 +187,11 @@ resource "helm_release" "monitoring" {
         ALERT_MANAGER_SLACK_WEBHOOK_URL                         = var.alert_manager_slack_webhook_url,
         ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING = local.web_endpoint_monitoring_webhook,
         GRAFANA_EXTRA_DASHBOARD_PROVIDERS                       = var.grafana_extra_dashboard_providers,
+        PROMETHEUS_RETENTION                                    = var.prometheus_retention,
+        PROMETHEUS_RETENTION_SIZE                               = "${floor(var.prometheus_storage_size_gb * 0.9)}GB",
+        PROMETHEUS_RESOURCES                                    = yamlencode(var.prometheus_resources),
+        PROMETHEUS_STORAGE_SIZE                                 = "${var.prometheus_storage_size_gb}Gi",
+        PROMETHEUS_STORAGE_CLASS                                = var.prometheus_storage_class != "" ? var.prometheus_storage_class : var.grafana_pvc_storage_class,
       }
     )
   ]
