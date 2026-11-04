@@ -100,6 +100,16 @@ prometheus_retention       = "60d"
 
 Before v1.4.0 the chart kept the data in an emptyDir, and every restart lost the history.
 
+### Loki retention
+
+Loki keeps logs for `loki_retention_period` (default `730d`, two years) and deletes older chunks and index tables from its bucket. `0s` keeps them for ever. The compactor applies retention every `loki_retention_sweep_interval` (default `24h`). Each sweep reads every index table, one per day of history, so sweeping on every 10-minute compaction cycle, as v1.2.0 to v1.4.0 did, costs hundreds of thousands of S3 calls a day.
+
+```hcl
+loki_retention_period = "365d"
+```
+
+Retention also provides the log deletion API (`/loki/api/v1/delete`).
+
 ### Grafana plugins
 
 ```hcl

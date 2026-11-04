@@ -110,6 +110,8 @@ resource "helm_release" "loki" {
         LOKI_RESULTS_CACHE_ALLOCATED_MEMORY_MB = var.loki_results_cache_allocated_memory_mb,
         LOKI_RESULTS_CACHE_MEMORY_MI           = local.loki_results_cache_memory_mi,
         LOKI_RESULTS_CACHE_CPU_REQUEST         = var.loki_results_cache_cpu_request,
+        LOKI_RETENTION_PERIOD                  = var.loki_retention_period,
+        LOKI_RETENTION_SWEEP_INTERVAL          = var.loki_retention_sweep_interval,
       }
     )
   ]

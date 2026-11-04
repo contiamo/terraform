@@ -39,6 +39,23 @@ variable "loki_storage_bucket_access_key_id" {
   default     = ""
 }
 
+variable "loki_retention_period" {
+  description = "How long Loki keeps logs, as a Loki duration in whole days (e.g. 730d, 365d), or 0s to keep them for ever. The compactor deletes older chunks and index tables from the bucket. The default, 730d, keeps two years."
+  type        = string
+  default     = "730d"
+
+  validation {
+    condition     = var.loki_retention_period == "0s" || can(regex("^[0-9]+d$", var.loki_retention_period))
+    error_message = "Use whole days (e.g. 730d) or 0s; Loki needs a multiple of the 24h index period."
+  }
+}
+
+variable "loki_retention_sweep_interval" {
+  description = "How often the Loki compactor applies retention (compactor.apply_retention_interval). Each sweep reads every index table, so a short interval means many S3 calls; 0s would sweep on every 10-minute compaction cycle."
+  type        = string
+  default     = "24h"
+}
+
 variable "loki_storage_class_name" {
   type        = string
   description = "StorageClass for Loki PVCs (read/write/backend persistence). Only used when target_cluster != \"eks\"."
