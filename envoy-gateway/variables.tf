@@ -13,7 +13,7 @@ variable "chart_version" {
     https://gateway.envoyproxy.io/news/releases/matrix/
   EOT
   type        = string
-  default     = "v1.9.3"
+  default     = "v1.10.0"
 }
 
 variable "namespace" {
