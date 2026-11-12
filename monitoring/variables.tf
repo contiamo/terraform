@@ -99,21 +99,51 @@ variable "grafana_pvc_storage_class" {
 }
 
 variable "grafana_gateway_parent_ref" {
-  description = "Gateway parentRef for the Grafana HTTPRoute (name/namespace/sectionName)."
+  description = "Gateway parentRef for the Grafana HTTPRoute (name/namespace/sectionName). Required unless listener_set is set, which replaces it."
   type = object({
     name         = string
     namespace    = string
     section_name = string
   })
+  default = null
 }
 
 variable "alert_manager_gateway_parent_ref" {
-  description = "Gateway parentRef for the Alertmanager HTTPRoute (name/namespace/sectionName)."
+  description = "Gateway parentRef for the Alertmanager HTTPRoute (name/namespace/sectionName). Required unless listener_set is set, which replaces it."
   type = object({
     name         = string
     namespace    = string
     section_name = string
   })
+  default = null
+}
+
+variable "listener_set" {
+  description = <<-EOT
+    Serve Grafana and Alertmanager through a ListenerSet the module creates in
+    the monitoring namespace, instead of attaching the HTTPRoutes to an existing
+    Gateway listener. Use it when the Gateway has no listener for these hosts,
+    such as the tailnet identity gateway (github.com/contiamo/tailnet-id-gateway),
+    which takes per-app ListenerSets.
+
+    The ListenerSet attaches to gateway_name in gateway_namespace and has one
+    HTTPS listener per host (sections "grafana" and "alertmanager"). cert-manager
+    issues each host's certificate through cluster_issuer, which must be able to
+    validate both hosts (e.g. a Route 53 DNS-01 issuer). When set, the
+    *_gateway_parent_ref variables are ignored. Null (the default) keeps the
+    routes on those Gateway listeners.
+  EOT
+  type = object({
+    gateway_name      = string
+    gateway_namespace = string
+    cluster_issuer    = string
+  })
+  default = null
+
+  validation {
+    condition     = var.listener_set == null ? (var.grafana_gateway_parent_ref != null && var.alert_manager_gateway_parent_ref != null) : true
+    error_message = "Set grafana_gateway_parent_ref and alert_manager_gateway_parent_ref, or set listener_set."
+  }
 }
 
 variable "alert_manager_host" {

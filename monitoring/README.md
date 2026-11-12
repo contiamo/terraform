@@ -10,7 +10,7 @@ Two flavours are supported via `target_cluster`:
 The stack assumes:
 
 - Gateway API + Envoy Gateway are already installed on the cluster (use the `envoy-gateway` and `gateway-api-crds` modules).
-- A Gateway resource exists with HTTPS listener sections that the caller can reference for Grafana and Alertmanager.
+- A Gateway resource exists with HTTPS listener sections that the caller can reference for Grafana and Alertmanager, or the caller sets `listener_set` and the module brings its own listeners (see below).
 - `grafana_host` and `alert_manager_host` are the public hostnames served by those HTTPRoutes. Grafana's `server.root_url` and Alertmanager's `externalUrl` follow them, so OAuth redirects, Slack alert links and the Silence button resolve publicly instead of pointing at the in-cluster Service.
 
 ## EKS usage
@@ -88,6 +88,22 @@ module "monitoring" {
 ```
 
 ## Optional features
+
+### Own listeners through a ListenerSet
+
+Set `listener_set` when the Gateway has no listener that covers the two hosts, for example the tailnet identity gateway, which takes a ListenerSet per app. The module then creates a ListenerSet `monitoring` in its namespace with one HTTPS listener per host (sections `grafana` and `alertmanager`), and both HTTPRoutes attach to it. cert-manager issues a certificate per host through the given ClusterIssuer. The `*_gateway_parent_ref` variables are ignored and can be left out.
+
+```hcl
+  listener_set = {
+    gateway_name      = "tailnet-id-gateway"
+    gateway_namespace = "tailnet-id-gateway"
+    cluster_issuer    = "letsencrypt-production-route53-multi-zone"
+  }
+  grafana_host       = "grafana.example.com"
+  alert_manager_host = "alertmanager.example.com"
+```
+
+The issuer must be able to validate both hosts. No external-dns target annotation is set: ExternalDNS falls back to the parent Gateway's target.
 
 ### Prometheus storage and retention
 

@@ -89,9 +89,17 @@ grafana:
       hostnames:
         - ${GRAFANA_HOST}
       parentRefs:
+%{ if LISTENER_SET_ENABLED ~}
+        # kind is required: without it a parentRef means a Gateway.
+        - group: gateway.networking.k8s.io
+          kind: ListenerSet
+          name: ${LISTENER_SET_NAME}
+          sectionName: grafana
+%{ else ~}
         - name: ${GRAFANA_GATEWAY_NAME}
           namespace: ${GRAFANA_GATEWAY_NAMESPACE}
           sectionName: ${GRAFANA_GATEWAY_SECTION}
+%{ endif ~}
   resources:
     ${indent(4, GRAFANA_RESOURCES)}
   readinessProbe:
@@ -158,9 +166,17 @@ alertmanager:
       hostnames:
         - ${ALERT_MANAGER_HOST}
       parentRefs:
+%{ if LISTENER_SET_ENABLED ~}
+        # kind is required: without it a parentRef means a Gateway.
+        - group: gateway.networking.k8s.io
+          kind: ListenerSet
+          name: ${LISTENER_SET_NAME}
+          sectionName: alertmanager
+%{ else ~}
         - name: ${ALERT_MANAGER_GATEWAY_NAME}
           namespace: ${ALERT_MANAGER_GATEWAY_NAMESPACE}
           sectionName: ${ALERT_MANAGER_GATEWAY_SECTION}
+%{ endif ~}
   templateFiles:
   ## An example template:
     alert_silence_template.tmpl: |-
