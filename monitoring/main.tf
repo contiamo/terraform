@@ -13,6 +13,10 @@ locals {
   # cache on first fill. Deriving it here makes that impossible.
   loki_chunks_cache_memory_mi  = floor((var.loki_chunks_cache_allocated_memory_mb * 12 + 5) / 10)
   loki_results_cache_memory_mi = floor((var.loki_results_cache_allocated_memory_mb * 12 + 5) / 10)
+
+  # With listener_set the HTTPRoutes attach to the module's ListenerSet instead
+  # of the caller's Gateway listeners (see helm-values-monitoring.tpl).
+  listener_set_name = "monitoring"
 }
 
 # Prep. namespace:
@@ -141,11 +145,58 @@ resource "kubernetes_config_map_v1" "loki_datasource" {
         EOT
   }
 }
+# HTTPS listeners for Grafana and Alertmanager, when the caller sets
+# listener_set (e.g. the tailnet identity gateway, which has no shared
+# wildcard listener):
+# - cert-manager sees the issuer annotation and issues one certificate per
+#   host. Don't create the Certificate by hand.
+# - No external-dns target annotation: ExternalDNS falls back to the parent
+#   Gateway's.
+# - No HTTP listener: the Gateway's own port 80 listener redirects.
+# - allowedRoutes is omitted, so only routes in this namespace can attach.
+resource "kubernetes_manifest" "listener_set" {
+  count = var.listener_set != null ? 1 : 0
+
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1"
+    kind       = "ListenerSet"
+    metadata = {
+      name      = local.listener_set_name
+      namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
+      annotations = {
+        "cert-manager.io/cluster-issuer" = var.listener_set.cluster_issuer
+      }
+    }
+    spec = {
+      parentRef = {
+        group     = "gateway.networking.k8s.io"
+        kind      = "Gateway"
+        name      = var.listener_set.gateway_name
+        namespace = var.listener_set.gateway_namespace
+      }
+      listeners = [for l in [
+        { name = "grafana", hostname = var.grafana_host },
+        { name = "alertmanager", hostname = var.alert_manager_host },
+        ] : {
+        name     = l.name
+        hostname = l.hostname
+        port     = 443
+        protocol = "HTTPS"
+        tls = {
+          mode            = "Terminate"
+          certificateRefs = [{ kind = "Secret", name = "${l.hostname}-auto-generated" }]
+        }
+      }]
+    }
+  }
+}
+
 # Create Grafana Helm release. We want to creater it after Loki so that we camn use Loki as a datasource:
 resource "helm_release" "monitoring" {
   depends_on = [
     kubernetes_namespace_v1.monitoring,
     helm_release.loki,
+    kubernetes_manifest.listener_set,
   ]
   name       = "monitoring-stack"
   repository = "https://prometheus-community.github.io/helm-charts"
@@ -161,9 +212,11 @@ resource "helm_release" "monitoring" {
         GRAFANA_PVC_SIZE                                        = var.grafana_pvc_size,
         GRAFANA_RESOURCES                                       = yamlencode(var.grafana_resources),
         GRAFANA_PVC_STORAGE_CLASS                               = var.grafana_pvc_storage_class,
-        GRAFANA_GATEWAY_NAME                                    = var.grafana_gateway_parent_ref.name,
-        GRAFANA_GATEWAY_NAMESPACE                               = var.grafana_gateway_parent_ref.namespace,
-        GRAFANA_GATEWAY_SECTION                                 = var.grafana_gateway_parent_ref.section_name,
+        LISTENER_SET_ENABLED                                    = var.listener_set != null,
+        LISTENER_SET_NAME                                       = local.listener_set_name,
+        GRAFANA_GATEWAY_NAME                                    = try(var.grafana_gateway_parent_ref.name, ""),
+        GRAFANA_GATEWAY_NAMESPACE                               = try(var.grafana_gateway_parent_ref.namespace, ""),
+        GRAFANA_GATEWAY_SECTION                                 = try(var.grafana_gateway_parent_ref.section_name, ""),
         GRAFANA_HOST                                            = var.grafana_host,
         GRAFANA_ADMIN_USER                                      = var.grafana_admin_user,
         GRAFANA_ADMIN_PASSWORD                                  = var.grafana_admin_password,
@@ -182,9 +235,9 @@ resource "helm_release" "monitoring" {
         GRAFANA_OAUTH_AUTO_LOGIN                                = var.grafana_oauth_auto_login,
         GRAFANA_OAUTH_SKIP_ORG_ROLE_SYNC                        = var.grafana_oauth_skip_org_role_sync,
         GRAFANA_AUTO_ASSIGN_ORG_ID                              = var.grafana_auto_assign_org_id,
-        ALERT_MANAGER_GATEWAY_NAME                              = var.alert_manager_gateway_parent_ref.name,
-        ALERT_MANAGER_GATEWAY_NAMESPACE                         = var.alert_manager_gateway_parent_ref.namespace,
-        ALERT_MANAGER_GATEWAY_SECTION                           = var.alert_manager_gateway_parent_ref.section_name,
+        ALERT_MANAGER_GATEWAY_NAME                              = try(var.alert_manager_gateway_parent_ref.name, ""),
+        ALERT_MANAGER_GATEWAY_NAMESPACE                         = try(var.alert_manager_gateway_parent_ref.namespace, ""),
+        ALERT_MANAGER_GATEWAY_SECTION                           = try(var.alert_manager_gateway_parent_ref.section_name, ""),
         ALERT_MANAGER_HOST                                      = var.alert_manager_host,
         ALERT_MANAGER_SLACK_WEBHOOK_URL                         = var.alert_manager_slack_webhook_url,
         ALERT_MANAGER_SLACK_WEBHOOK_URL_WEB_ENDPOINT_MONITORING = local.web_endpoint_monitoring_webhook,
