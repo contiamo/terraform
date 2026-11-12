@@ -156,6 +156,14 @@ resource "kubectl_manifest" "envoyproxy" {
         kubernetes = {
           envoyDeployment = merge(
             { replicas = var.replicas },
+            var.proxy_resources != null ? {
+              container = {
+                resources = merge(
+                  { requests = var.proxy_resources.requests },
+                  length(var.proxy_resources.limits) > 0 ? { limits = var.proxy_resources.limits } : {},
+                )
+              }
+            } : {},
             length(each.value.topology_spread_constraints) > 0 ? {
               pod = {
                 topologySpreadConstraints = [

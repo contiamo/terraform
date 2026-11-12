@@ -130,6 +130,7 @@ module "envoy_gateway" {
 | chart_version | Envoy Gateway Helm chart version | `string` | `"v1.10.0"` | no |
 | namespace | Kubernetes namespace | `string` | `"envoy-gateway-system"` | no |
 | replicas | Number of Envoy proxy replicas | `number` | `2` | no |
+| proxy_resources | Requests (and optional limits) for the Envoy proxy container of every gateway. Null keeps Envoy Gateway's default (100m / 512Mi, no limits) | `object({ requests = map(string), limits = optional(map(string), {}) })` | `null` | no |
 | cert_manager_cluster_issuer | Default cert-manager ClusterIssuer | `string` | `"letsencrypt-production-route53"` | no |
 | enable_grafana_dashboards | Install the upstream Envoy Gateway Grafana dashboards as a sidecar-discovered ConfigMap | `bool` | `true` | no |
 | enable_metrics_scraping | Install ServiceMonitor (control plane) + PodMonitor (data plane) for Prometheus | `bool` | `true` | no |

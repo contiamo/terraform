@@ -28,6 +28,15 @@ variable "replicas" {
   default     = 2
 }
 
+variable "proxy_resources" {
+  description = "Resource requests (and optional limits) for the Envoy proxy container of every gateway, rendered to `spec.provider.kubernetes.envoyDeployment.container.resources` on each EnvoyProxy. Null keeps Envoy Gateway's default (requests 100m CPU / 512Mi memory, no limits). Envoy's memory grows with routes and open connections; check `container_memory_working_set_bytes{container=\"envoy\"}` before lowering it."
+  type = object({
+    requests = map(string)
+    limits   = optional(map(string), {})
+  })
+  default = null
+}
+
 variable "cert_manager_cluster_issuer" {
   description = "Default cert-manager ClusterIssuer name for TLS certificates (can be overridden per gateway)"
   type        = string
