@@ -1,6 +1,0 @@
-# Generated CRD bundles (crds/ in each module, rendered from upstream charts).
-# linguist-generated: GitHub collapses them in PR diffs.
-# pr-auto-merge=crd-bundle: pr-auto-merge in contiamo/project-ops shows them to
-# Claude without their OpenAPI schemas and sends any change that removes a CRD
-# to a human (docs/pr-auto-merge.md there).
-*/crds/**/*.yaml linguist-generated=true pr-auto-merge=crd-bundle
