@@ -59,6 +59,7 @@ imports are clean.
 | policy | external-dns sync policy | `"sync"` |
 | sources | Watched source types | service, ingress, gateway-httproute, gateway-grpcroute |
 | enable_gateway_listener_sets | Add `--gateway-listener-sets` | `true` |
+| extra_args | Extra external-dns flags (chart `extraArgs`), e.g. `--gateway-label-filter=...` | `[]` |
 | aws_partition | Partition for zone ARNs | `"aws"` |
 | tags | Tags on IAM role/policy | `{}` |
 

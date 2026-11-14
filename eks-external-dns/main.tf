@@ -89,7 +89,7 @@ resource "helm_release" "this" {
     yamlencode({
       provider  = { name = "aws" }
       rbac      = { create = true }
-      extraArgs = []
+      extraArgs = var.extra_args
       serviceAccount = {
         create = true
         name   = var.service_account_name
