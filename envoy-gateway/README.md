@@ -275,3 +275,9 @@ spec:
         - name: my-app-service
           port: 80
 ```
+
+Always set `hostnames`. external-dns publishes a record for each one, pointing at the Gateway. A route without hostnames inherits the listener's wildcard (`*.ctmo.io`), and external-dns would publish the wildcard itself.
+
+## DNS: the HTTPS redirect route is not published
+
+Each Gateway with per-host listeners gets an HTTPRoute `<gateway>-https-redirect` on its `http-*` listeners. It has no hostnames, so external-dns would publish `*.<domain>` for every listener it is attached to: two Gateways on the same domains (EKS `envoy-public` and `envoy-tailscale`) then claim the same wildcard ("Only one CNAME per name" on every sync), and on OTC the wildcard carried the private envoy-tailscale address next to the public EIP. The route therefore carries `external-dns.alpha.kubernetes.io/controller: none` and `external-dns.kubernetes.io/controller: none` (both prefixes: external-dns v0.22.0 dropped the alpha one), which makes external-dns skip it. There is no wildcard record: a name under the domain resolves only if a route publishes it.

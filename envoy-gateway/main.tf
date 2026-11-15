@@ -314,6 +314,20 @@ resource "kubectl_manifest" "httproute_redirect" {
     metadata = {
       name      = "${each.key}-https-redirect"
       namespace = var.namespace
+      # Keep external-dns away from this route. It has no hostnames, so
+      # external-dns would take the hostname of each wildcard listener it is
+      # attached to and publish `*.<domain>` pointing at this Gateway. With two
+      # Gateways on the same domains (envoy-public, envoy-tailscale) both
+      # claim the wildcard: on EKS external-dns logs "Only one CNAME per name"
+      # every sync; on OTC the wildcard got the public EIP and the private
+      # envoy-tailscale address. Apps get their own records from their routes.
+      # Any value other than "dns-controller" makes external-dns skip the
+      # route; both prefixes, because external-dns v0.22.0 dropped the alpha
+      # one and clusters run versions on either side of that.
+      annotations = {
+        "external-dns.alpha.kubernetes.io/controller" = "none"
+        "external-dns.kubernetes.io/controller"       = "none"
+      }
     }
     spec = {
       parentRefs = [
