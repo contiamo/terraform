@@ -69,6 +69,17 @@ variable "enable_gateway_listener_sets" {
   default     = true
 }
 
+variable "extra_args" {
+  description = <<-EOT
+    Extra command-line flags for external-dns, passed as the chart's
+    `extraArgs`. Example: `["--gateway-label-filter=tailnet-id-gateway/in-cluster!=true"]`
+    makes external-dns ignore Gateways carrying that label, and skip them as
+    route parents.
+  EOT
+  type        = list(string)
+  default     = []
+}
+
 variable "aws_partition" {
   description = "AWS partition for the Route 53 hosted-zone ARNs (e.g. `aws`, `aws-cn`, `aws-us-gov`)."
   type        = string
