@@ -328,6 +328,12 @@ resource "helm_release" "grafana_alloy_logs" {
       # Every node runs pods whose logs we want, tainted or not.
       tolerations:
         - operator: Exists
+      # Nodes that were already full when the DaemonSet arrived (pod count or
+      # memory) left alloy-logs Pending; without a priority it cannot preempt
+      # anything. system-node-critical is the usual class for node agents:
+      # the scheduler evicts a lower-priority pod, which Karpenter places
+      # elsewhere.
+      priorityClassName: system-node-critical
       volumes:
         extra:
           - name: positions
