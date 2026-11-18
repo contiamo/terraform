@@ -252,14 +252,29 @@ resource "helm_release" "monitoring" {
   ]
 }
 
-# Grafana Alloy — log shipper. Replaces promtail (which the project archived
-# in 2025). See
-# https://hodovi.cc/blog/kubernetes-events-monitoring-with-loki-alloy-and-grafana/
+# Grafana Alloy, log shipper. Replaces promtail (which the project archived
+# in 2025). Two releases:
+#
+# - alloy-v1 (one-replica StatefulSet) ships cluster events. Events come from
+#   the API server, so a second replica would ship every event twice.
+# - alloy-logs (DaemonSet) ships pod logs by tailing the kubelet's files under
+#   /var/log/pods on its own node. Previously alloy-v1 streamed
+#   pod logs through the API and only for Pending/Running pods, which lost the
+#   logs of pods that finished within a second or two (half of all runs of
+#   some CronJobs). The files exist from the first byte a container writes
+#   until the pod object is deleted, whatever the pod's phase, so short-lived
+#   pods are covered as long as finished pods are kept for a few minutes (e.g.
+#   ttlSecondsAfterFinished >= 300 on Jobs).
+#
+# See https://hodovi.cc/blog/kubernetes-events-monitoring-with-loki-alloy-and-grafana/
 # for the relabel-rules background.
 resource "helm_release" "grafana_alloy" {
   depends_on = [
     kubernetes_namespace_v1.monitoring,
     helm_release.loki,
+    # Bring the DaemonSet up before alloy-v1 stops shipping pod logs, so the
+    # switch overlaps (briefly duplicated lines) instead of leaving a gap.
+    helm_release.grafana_alloy_logs,
   ]
   name       = "alloy-v1"
   repository = "https://grafana.github.io/helm-charts"
@@ -286,50 +301,124 @@ resource "helm_release" "grafana_alloy" {
             forward_to = [loki.write.local.receiver]
           }
 
-          discovery.kubernetes "pods" {
-            role = "pod"
+          loki.write "local" {
+            endpoint {
+              url = "http://loki-write:3100/loki/api/v1/push"
+            }
           }
 
+    EOT
+  ]
+}
+
+resource "helm_release" "grafana_alloy_logs" {
+  depends_on = [
+    kubernetes_namespace_v1.monitoring,
+    helm_release.loki,
+  ]
+  name       = "alloy-logs"
+  repository = "https://grafana.github.io/helm-charts"
+  chart      = "alloy"
+  version    = "1.12.1"
+  namespace  = kubernetes_namespace_v1.monitoring.metadata[0].name
+  values = [
+    <<-EOT
+    controller:
+      type: 'daemonset'
+      # Every node runs pods whose logs we want, tainted or not.
+      tolerations:
+        - operator: Exists
+      volumes:
+        extra:
+          - name: positions
+            hostPath:
+              path: /var/lib/alloy-logs
+              type: DirectoryOrCreate
+
+    alloy:
+      mounts:
+        # /var/log/pods, where the kubelet writes container logs.
+        varlog: true
+        extra:
+          - name: positions
+            mountPath: /var/lib/alloy
+      # Read positions live on the node, so a restarted Alloy pod carries on
+      # where it stopped instead of re-shipping every file it can see.
+      storagePath: /var/lib/alloy
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 512Mi
+      configMap:
+        create: true
+        content: |
+          logging {
+            level = "info"
+            format = "logfmt"
+          }
+
+          // Only the pods on this Alloy pod's node. The chart sets HOSTNAME
+          // to spec.nodeName.
+          discovery.kubernetes "pods" {
+            role = "pod"
+            selectors {
+              role  = "pod"
+              field = "spec.nodeName=" + sys.env("HOSTNAME")
+            }
+          }
+
+          // The labels match those of the former loki.source.kubernetes
+          // streams, so existing queries keep working; only job changes.
+          // No phase filter: finished pods must stay targets until their log
+          // files are read.
           discovery.relabel "pods" {
             targets = discovery.kubernetes.pods.targets
 
-            // Add namespace label
             rule {
               source_labels = ["__meta_kubernetes_namespace"]
               target_label  = "namespace"
             }
 
-            // Add pod name
             rule {
               source_labels = ["__meta_kubernetes_pod_name"]
               target_label  = "pod"
             }
 
-            // Add container name
             rule {
               source_labels = ["__meta_kubernetes_pod_container_name"]
               target_label  = "container"
             }
 
-            // Add app label from pod labels
+            rule {
+              source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_container_name"]
+              separator     = ";"
+              regex         = "(.+);(.+);(.+)"
+              replacement   = "$1/$2:$3"
+              target_label  = "instance"
+            }
+
+            rule {
+              target_label = "job"
+              replacement  = "loki.source.file.pods"
+            }
+
             rule {
               source_labels = ["__meta_kubernetes_pod_label_app"]
               target_label  = "app"
             }
 
-            // Add app.kubernetes.io/name label
             rule {
               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
               target_label  = "app_name"
             }
 
-            // Add app.kubernetes.io/instance label
             rule {
               source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_instance"]
               target_label  = "app_instance"
             }
 
-            // Extract deployment name from pod controller
             rule {
               source_labels = ["__meta_kubernetes_pod_controller_kind", "__meta_kubernetes_pod_controller_name"]
               separator     = ";"
@@ -337,7 +426,6 @@ resource "helm_release" "grafana_alloy" {
               target_label  = "deployment"
             }
 
-            // Add statefulset name if applicable
             rule {
               source_labels = ["__meta_kubernetes_pod_controller_kind", "__meta_kubernetes_pod_controller_name"]
               separator     = ";"
@@ -345,7 +433,6 @@ resource "helm_release" "grafana_alloy" {
               target_label  = "statefulset"
             }
 
-            // Add daemonset name if applicable
             rule {
               source_labels = ["__meta_kubernetes_pod_controller_kind", "__meta_kubernetes_pod_controller_name"]
               separator     = ";"
@@ -353,22 +440,39 @@ resource "helm_release" "grafana_alloy" {
               target_label  = "daemonset"
             }
 
-            // Add node name
             rule {
               source_labels = ["__meta_kubernetes_pod_node_name"]
               target_label  = "node"
             }
 
-            // Keep only running pods
+            // /var/log/pods/<namespace>_<pod>_<uid>/<container>/<restart>.log
             rule {
-              source_labels = ["__meta_kubernetes_pod_phase"]
-              regex         = "Pending|Running"
-              action        = "keep"
+              source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+              separator     = "/"
+              replacement   = "/var/log/pods/*$1/*.log"
+              target_label  = "__path__"
             }
           }
 
-          loki.source.kubernetes "pods" {
-            targets    = discovery.relabel.pods.output
+          local.file_match "pods" {
+            path_targets = discovery.relabel.pods.output
+          }
+
+          loki.source.file "pods" {
+            targets    = local.file_match.pods.targets
+            forward_to = [loki.process.pods.receiver]
+          }
+
+          // Unwrap the CRI log format (timestamp, stream, partial-line flag)
+          // and drop the per-file label loki.source.file adds, which would
+          // split a container's log into one stream per restart.
+          loki.process "pods" {
+            stage.cri {}
+
+            stage.label_drop {
+              values = ["filename"]
+            }
+
             forward_to = [loki.write.local.receiver]
           }
 

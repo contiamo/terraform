@@ -1,6 +1,6 @@
 # Monitoring stack
 
-Sets up the standard Contiamo Grafana / Prometheus / Alertmanager / Loki stack on a Kubernetes cluster, fronted by Gateway API (Envoy Gateway). Log shipping is provided by Grafana Alloy (replaces promtail).
+Sets up the standard Contiamo Grafana / Prometheus / Alertmanager / Loki stack on a Kubernetes cluster, fronted by Gateway API (Envoy Gateway). Log shipping is provided by Grafana Alloy (replaces promtail): a DaemonSet (`alloy-logs`) tails the pod log files on each node, so pods that finish within seconds are covered too, and a one-replica StatefulSet (`alloy-v1`) ships cluster events.
 
 Two flavours are supported via `target_cluster`:
 
